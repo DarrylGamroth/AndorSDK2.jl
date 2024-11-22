@@ -1,7 +1,7 @@
 module AndorSDK2
 
 include("LibAndorSDK2.jl")
-import .LibAndorSDK2
+using .LibAndorSDK2
 
 include("exceptions.jl")
 
@@ -55,6 +55,8 @@ function initialize(dir::AbstractString)
     check_error(retval)
 end
 
+initialize() = initialize(joinpath(AndorSDK2_jll.artifact_dir, "share", "AndorSDK2"))
+
 function abort_acquisition(c::Camera)
     retval = LibAndorSDK2.AbortAcquisition()
     check_error(retval)
@@ -65,8 +67,25 @@ function cancel_wait()
     check_error(retval)
 end
 
+function available_cameras()
+    num_cameras = Ref{Cint}()
+    retval = LibAndorSDK2.GetAvailableCameras(num_cameras)
+    check_error(retval)
+    num_cameras[]
+end
 
+function current_camera()
+    handle = Ref{Cint}()
+    retval = LibAndorSDK2.GetCurrentCamera(handle)
+    check_error(retval)
+    handle[]
+end
 
-
+function camera_handle(index)
+    handle = Ref{Cint}()
+    retval = LibAndorSDK2.GetCameraHandle(index, handle)
+    check_error(retval)
+    handle[]
+end
 
 end # module
