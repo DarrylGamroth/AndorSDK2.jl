@@ -1,33 +1,38 @@
 module LibAndorSDK2
 
+using AndorSDK2_jll
+export AndorSDK2_jll
+
 using CEnum
 
-@static if Sys.islinux()
-    if Sys.ARCH === :x86_64
-        const libandor = "libandor-x86_64.so"
-    else
-        const libandor = "libandor-i386.so"
-    end
-elseif Sys.iswindows()
-    if Sys.ARCH === :x86_64
-        const libandor = "atmcd64m.dll"
-    else
-        const libandor = "atmcd32m.dll"
-    end
-else
-    error("Unsupported OS")
+const ULONG = Culong
+
+const BYTE = Cuchar
+
+const WORD = Cushort
+
+const DWORD = Culong
+
+const HANDLE = Ptr{Cvoid}
+
+mutable struct HWND__
+    unused::Cint
+    HWND__() = new()
 end
 
-struct SYSTEMTIME
-    wYear::Cushort
-    wMonth::Cushort
-    wDayOfWeek::Cushort
-    wDay::Cushort
-    wHour::Cushort
-    wMinute::Cushort
-    wSecond::Cushort
-    wMilliseconds::Cushort
+mutable struct _SYSTEMTIME
+    wYear::WORD
+    wMonth::WORD
+    wDayOfWeek::WORD
+    wDay::WORD
+    wHour::WORD
+    wMinute::WORD
+    wSecond::WORD
+    wMilliseconds::WORD
+    _SYSTEMTIME() = new()
 end
+
+const SYSTEMTIME = _SYSTEMTIME
 
 @cenum AT_VersionInfoId::UInt32 begin
     AT_SDKVersion = 1073741824
@@ -41,19 +46,18 @@ end
 end
 
 mutable struct ANDORCAPS
-    ulSize::Cuint
-    ulAcqModes::Cuint
-    ulReadModes::Cuint
-    ulTriggerModes::Cuint
-    ulCameraType::Cuint
-    ulPixelMode::Cuint
-    ulSetFunctions::Cuint
-    ulGetFunctions::Cuint
-    ulFeatures::Cuint
-    ulPCICard::Cuint
-    ulEMGainCapability::Cuint
-    ulFTReadModes::Cuint
-    ulFeatures2::Cuint
+    ulSize::ULONG
+    ulAcqModes::ULONG
+    ulReadModes::ULONG
+    ulTriggerModes::ULONG
+    ulCameraType::ULONG
+    ulPixelMode::ULONG
+    ulSetFunctions::ULONG
+    ulGetFunctions::ULONG
+    ulFeatures::ULONG
+    ulPCICard::ULONG
+    ulEMGainCapability::ULONG
+    ulFTReadModes::ULONG
     ANDORCAPS() = new()
 end
 
@@ -86,56 +90,52 @@ end
 
 const WhiteBalanceInfo = WHITEBALANCEINFO
 
-# no prototype is found for this function at atmcdLXd.h:147:14, please use with caution
 """
     AbortAcquisition()
 
 ### Prototype
 ```c
-unsigned int AbortAcquisition();
+unsigned int WINAPI AbortAcquisition(void);
 ```
 """
 function AbortAcquisition()
-    @ccall libandor.AbortAcquisition()::Cuint
+    @ccall libandor2.AbortAcquisition()::Cuint
 end
 
-# no prototype is found for this function at atmcdLXd.h:148:14, please use with caution
 """
     CancelWait()
 
 ### Prototype
 ```c
-unsigned int CancelWait();
+unsigned int WINAPI CancelWait(void);
 ```
 """
 function CancelWait()
-    @ccall libandor.CancelWait()::Cuint
+    @ccall libandor2.CancelWait()::Cuint
 end
 
-# no prototype is found for this function at atmcdLXd.h:149:14, please use with caution
 """
     CoolerOFF()
 
 ### Prototype
 ```c
-unsigned int CoolerOFF();
+unsigned int WINAPI CoolerOFF(void);
 ```
 """
 function CoolerOFF()
-    @ccall libandor.CoolerOFF()::Cuint
+    @ccall libandor2.CoolerOFF()::Cuint
 end
 
-# no prototype is found for this function at atmcdLXd.h:150:14, please use with caution
 """
     CoolerON()
 
 ### Prototype
 ```c
-unsigned int CoolerON();
+unsigned int WINAPI CoolerON(void);
 ```
 """
 function CoolerON()
-    @ccall libandor.CoolerON()::Cuint
+    @ccall libandor2.CoolerON()::Cuint
 end
 
 """
@@ -143,11 +143,11 @@ end
 
 ### Prototype
 ```c
-unsigned int DemosaicImage(unsigned short * grey, unsigned short * red, unsigned short * green, unsigned short * blue, ColorDemosaicInfo * info);
+unsigned int WINAPI DemosaicImage(WORD * grey, WORD * red, WORD * green, WORD * blue, ColorDemosaicInfo * info);
 ```
 """
 function DemosaicImage(grey, red, green, blue, info)
-    @ccall libandor.DemosaicImage(grey::Ptr{Cushort}, red::Ptr{Cushort}, green::Ptr{Cushort}, blue::Ptr{Cushort}, info::Ptr{ColorDemosaicInfo})::Cuint
+    @ccall libandor2.DemosaicImage(grey::Ptr{WORD}, red::Ptr{WORD}, green::Ptr{WORD}, blue::Ptr{WORD}, info::Ptr{ColorDemosaicInfo})::Cuint
 end
 
 """
@@ -155,11 +155,11 @@ end
 
 ### Prototype
 ```c
-unsigned int EnableKeepCleans(int iMode);
+unsigned int WINAPI EnableKeepCleans(int iMode);
 ```
 """
 function EnableKeepCleans(iMode)
-    @ccall libandor.EnableKeepCleans(iMode::Cint)::Cuint
+    @ccall libandor2.EnableKeepCleans(iMode::Cint)::Cuint
 end
 
 """
@@ -167,11 +167,11 @@ end
 
 ### Prototype
 ```c
-unsigned int EnableSensorCompensation(int iMode);
+unsigned int WINAPI EnableSensorCompensation(int iMode);
 ```
 """
 function EnableSensorCompensation(iMode)
-    @ccall libandor.EnableSensorCompensation(iMode::Cint)::Cuint
+    @ccall libandor2.EnableSensorCompensation(iMode::Cint)::Cuint
 end
 
 """
@@ -179,24 +179,23 @@ end
 
 ### Prototype
 ```c
-unsigned int SetIRIGModulation(char mode);
+unsigned int WINAPI SetIRIGModulation(char mode);
 ```
 """
 function SetIRIGModulation(mode)
-    @ccall libandor.SetIRIGModulation(mode::Cchar)::Cuint
+    @ccall libandor2.SetIRIGModulation(mode::Cchar)::Cuint
 end
 
-# no prototype is found for this function at atmcdLXd.h:155:14, please use with caution
 """
     FreeInternalMemory()
 
 ### Prototype
 ```c
-unsigned int FreeInternalMemory();
+unsigned int WINAPI FreeInternalMemory(void);
 ```
 """
 function FreeInternalMemory()
-    @ccall libandor.FreeInternalMemory()::Cuint
+    @ccall libandor2.FreeInternalMemory()::Cuint
 end
 
 """
@@ -204,11 +203,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetAcquiredData(at_32 * arr, at_u32 size);
+unsigned int WINAPI GetAcquiredData(at_32 * arr, unsigned long size);
 ```
 """
 function GetAcquiredData(arr, size)
-    @ccall libandor.GetAcquiredData(arr::Ptr{Cint}, size::Cuint)::Cuint
+    @ccall libandor2.GetAcquiredData(arr::Ptr{Clong}, size::Culong)::Cuint
 end
 
 """
@@ -216,11 +215,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetAcquiredData16(unsigned short * arr, at_u32 size);
+unsigned int WINAPI GetAcquiredData16(WORD * arr, unsigned long size);
 ```
 """
 function GetAcquiredData16(arr, size)
-    @ccall libandor.GetAcquiredData16(arr::Ptr{Cushort}, size::Cuint)::Cuint
+    @ccall libandor2.GetAcquiredData16(arr::Ptr{WORD}, size::Culong)::Cuint
 end
 
 """
@@ -228,11 +227,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetAcquiredFloatData(float * arr, at_u32 size);
+unsigned int WINAPI GetAcquiredFloatData(float * arr, unsigned long size);
 ```
 """
 function GetAcquiredFloatData(arr, size)
-    @ccall libandor.GetAcquiredFloatData(arr::Ptr{Cfloat}, size::Cuint)::Cuint
+    @ccall libandor2.GetAcquiredFloatData(arr::Ptr{Cfloat}, size::Culong)::Cuint
 end
 
 """
@@ -240,11 +239,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetAcquisitionProgress(at_32 * acc, at_32 * series);
+unsigned int WINAPI GetAcquisitionProgress(long * acc, long * series);
 ```
 """
 function GetAcquisitionProgress(acc, series)
-    @ccall libandor.GetAcquisitionProgress(acc::Ptr{Cint}, series::Ptr{Cint})::Cuint
+    @ccall libandor2.GetAcquisitionProgress(acc::Ptr{Clong}, series::Ptr{Clong})::Cuint
 end
 
 """
@@ -252,11 +251,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetAcquisitionTimings(float * exposure, float * accumulate, float * kinetic);
+unsigned int WINAPI GetAcquisitionTimings(float * exposure, float * accumulate, float * kinetic);
 ```
 """
 function GetAcquisitionTimings(exposure, accumulate, kinetic)
-    @ccall libandor.GetAcquisitionTimings(exposure::Ptr{Cfloat}, accumulate::Ptr{Cfloat}, kinetic::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetAcquisitionTimings(exposure::Ptr{Cfloat}, accumulate::Ptr{Cfloat}, kinetic::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -264,11 +263,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetAdjustedRingExposureTimes(int inumTimes, float * fptimes);
+unsigned int WINAPI GetAdjustedRingExposureTimes(int inumTimes, float * fptimes);
 ```
 """
 function GetAdjustedRingExposureTimes(inumTimes, fptimes)
-    @ccall libandor.GetAdjustedRingExposureTimes(inumTimes::Cint, fptimes::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetAdjustedRingExposureTimes(inumTimes::Cint, fptimes::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -276,11 +275,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetAllDMAData(at_32 * arr, at_u32 size);
+unsigned int WINAPI GetAllDMAData(at_32 * arr, unsigned long size);
 ```
 """
 function GetAllDMAData(arr, size)
-    @ccall libandor.GetAllDMAData(arr::Ptr{Cint}, size::Cuint)::Cuint
+    @ccall libandor2.GetAllDMAData(arr::Ptr{Clong}, size::Culong)::Cuint
 end
 
 """
@@ -288,11 +287,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetAmpDesc(int index, char * name, int length);
+unsigned int WINAPI GetAmpDesc(int index, char * name, int length);
 ```
 """
 function GetAmpDesc(index, name, length)
-    @ccall libandor.GetAmpDesc(index::Cint, name::Cstring, length::Cint)::Cuint
+    @ccall libandor2.GetAmpDesc(index::Cint, name::Cstring, length::Cint)::Cuint
 end
 
 """
@@ -300,11 +299,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetAmpMaxSpeed(int index, float * speed);
+unsigned int WINAPI GetAmpMaxSpeed(int index, float * speed);
 ```
 """
 function GetAmpMaxSpeed(index, speed)
-    @ccall libandor.GetAmpMaxSpeed(index::Cint, speed::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetAmpMaxSpeed(index::Cint, speed::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -312,11 +311,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetAvailableCameras(at_32 * totalCameras);
+unsigned int WINAPI GetAvailableCameras(long * totalCameras);
 ```
 """
 function GetAvailableCameras(totalCameras)
-    @ccall libandor.GetAvailableCameras(totalCameras::Ptr{Cint})::Cuint
+    @ccall libandor2.GetAvailableCameras(totalCameras::Ptr{Clong})::Cuint
 end
 
 """
@@ -324,11 +323,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetBackground(at_32 * arr, at_u32 size);
+unsigned int WINAPI GetBackground(at_32 * arr, unsigned long size);
 ```
 """
 function GetBackground(arr, size)
-    @ccall libandor.GetBackground(arr::Ptr{Cint}, size::Cuint)::Cuint
+    @ccall libandor2.GetBackground(arr::Ptr{Clong}, size::Culong)::Cuint
 end
 
 """
@@ -336,11 +335,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetBaselineClamp(int * state);
+unsigned int WINAPI GetBaselineClamp(int * state);
 ```
 """
 function GetBaselineClamp(state)
-    @ccall libandor.GetBaselineClamp(state::Ptr{Cint})::Cuint
+    @ccall libandor2.GetBaselineClamp(state::Ptr{Cint})::Cuint
 end
 
 """
@@ -348,23 +347,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetBitDepth(int channel, int * depth);
+unsigned int WINAPI GetBitDepth(int channel, int * depth);
 ```
 """
 function GetBitDepth(channel, depth)
-    @ccall libandor.GetBitDepth(channel::Cint, depth::Ptr{Cint})::Cuint
-end
-
-"""
-    GetBitsPerPixel(readout_index, index, value)
-
-### Prototype
-```c
-unsigned int GetBitsPerPixel(int readout_index, int index, int * value);
-```
-"""
-function GetBitsPerPixel(readout_index, index, value)
-    @ccall libandor.GetBitsPerPixel(readout_index::Cint, index::Cint, value::Ptr{Cint})::Cuint
+    @ccall libandor2.GetBitDepth(channel::Cint, depth::Ptr{Cint})::Cuint
 end
 
 """
@@ -372,11 +359,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetCameraEventStatus(at_u32 * camStatus);
+unsigned int WINAPI GetCameraEventStatus(DWORD * camStatus);
 ```
 """
 function GetCameraEventStatus(camStatus)
-    @ccall libandor.GetCameraEventStatus(camStatus::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetCameraEventStatus(camStatus::Ptr{DWORD})::Cuint
 end
 
 """
@@ -384,11 +371,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetCameraHandle(at_32 cameraIndex, at_32 * cameraHandle);
+unsigned int WINAPI GetCameraHandle(long cameraIndex, long * cameraHandle);
 ```
 """
 function GetCameraHandle(cameraIndex, cameraHandle)
-    @ccall libandor.GetCameraHandle(cameraIndex::Cint, cameraHandle::Ptr{Cint})::Cuint
+    @ccall libandor2.GetCameraHandle(cameraIndex::Clong, cameraHandle::Ptr{Clong})::Cuint
 end
 
 """
@@ -396,11 +383,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetCameraInformation(int index, at_32 * information);
+unsigned int WINAPI GetCameraInformation(int index, long * information);
 ```
 """
 function GetCameraInformation(index, information)
-    @ccall libandor.GetCameraInformation(index::Cint, information::Ptr{Cint})::Cuint
+    @ccall libandor2.GetCameraInformation(index::Cint, information::Ptr{Clong})::Cuint
 end
 
 """
@@ -408,11 +395,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetCameraSerialNumber(int * number);
+unsigned int WINAPI GetCameraSerialNumber(int * number);
 ```
 """
 function GetCameraSerialNumber(number)
-    @ccall libandor.GetCameraSerialNumber(number::Ptr{Cint})::Cuint
+    @ccall libandor2.GetCameraSerialNumber(number::Ptr{Cint})::Cuint
 end
 
 """
@@ -420,11 +407,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetCapabilities(AndorCapabilities * caps);
+unsigned int WINAPI GetCapabilities(AndorCapabilities * caps);
 ```
 """
 function GetCapabilities(caps)
-    @ccall libandor.GetCapabilities(caps::Ptr{AndorCapabilities})::Cuint
+    @ccall libandor2.GetCapabilities(caps::Ptr{AndorCapabilities})::Cuint
 end
 
 """
@@ -432,11 +419,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetControllerCardModel(char * controllerCardModel);
+unsigned int WINAPI GetControllerCardModel(char * controllerCardModel);
 ```
 """
 function GetControllerCardModel(controllerCardModel)
-    @ccall libandor.GetControllerCardModel(controllerCardModel::Cstring)::Cuint
+    @ccall libandor2.GetControllerCardModel(controllerCardModel::Cstring)::Cuint
 end
 
 """
@@ -444,11 +431,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetCountConvertWavelengthRange(float * minval, float * maxval);
+unsigned int WINAPI GetCountConvertWavelengthRange(float * minval, float * maxval);
 ```
 """
 function GetCountConvertWavelengthRange(minval, maxval)
-    @ccall libandor.GetCountConvertWavelengthRange(minval::Ptr{Cfloat}, maxval::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetCountConvertWavelengthRange(minval::Ptr{Cfloat}, maxval::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -456,11 +443,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetCurrentCamera(at_32 * cameraHandle);
+unsigned int WINAPI GetCurrentCamera(long * cameraHandle);
 ```
 """
 function GetCurrentCamera(cameraHandle)
-    @ccall libandor.GetCurrentCamera(cameraHandle::Ptr{Cint})::Cuint
+    @ccall libandor2.GetCurrentCamera(cameraHandle::Ptr{Clong})::Cuint
 end
 
 """
@@ -468,11 +455,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetCYMGShift(int * iXshift, int * iYShift);
+unsigned int WINAPI GetCYMGShift(int * iXshift, int * iYShift);
 ```
 """
 function GetCYMGShift(iXshift, iYShift)
-    @ccall libandor.GetCYMGShift(iXshift::Ptr{Cint}, iYShift::Ptr{Cint})::Cuint
+    @ccall libandor2.GetCYMGShift(iXshift::Ptr{Cint}, iYShift::Ptr{Cint})::Cuint
 end
 
 """
@@ -480,11 +467,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGExternalOutputEnabled(at_u32 uiIndex, at_u32 * puiEnabled);
+unsigned int WINAPI GetDDGExternalOutputEnabled(at_u32 uiIndex, at_u32 * puiEnabled);
 ```
 """
 function GetDDGExternalOutputEnabled(uiIndex, puiEnabled)
-    @ccall libandor.GetDDGExternalOutputEnabled(uiIndex::Cuint, puiEnabled::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetDDGExternalOutputEnabled(uiIndex::Culong, puiEnabled::Ptr{Culong})::Cuint
 end
 
 """
@@ -492,11 +479,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGExternalOutputPolarity(at_u32 uiIndex, at_u32 * puiPolarity);
+unsigned int WINAPI GetDDGExternalOutputPolarity(at_u32 uiIndex, at_u32 * puiPolarity);
 ```
 """
 function GetDDGExternalOutputPolarity(uiIndex, puiPolarity)
-    @ccall libandor.GetDDGExternalOutputPolarity(uiIndex::Cuint, puiPolarity::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetDDGExternalOutputPolarity(uiIndex::Culong, puiPolarity::Ptr{Culong})::Cuint
 end
 
 """
@@ -504,11 +491,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGExternalOutputStepEnabled(at_u32 uiIndex, at_u32 * puiEnabled);
+unsigned int WINAPI GetDDGExternalOutputStepEnabled(at_u32 uiIndex, at_u32 * puiEnabled);
 ```
 """
 function GetDDGExternalOutputStepEnabled(uiIndex, puiEnabled)
-    @ccall libandor.GetDDGExternalOutputStepEnabled(uiIndex::Cuint, puiEnabled::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetDDGExternalOutputStepEnabled(uiIndex::Culong, puiEnabled::Ptr{Culong})::Cuint
 end
 
 """
@@ -516,11 +503,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGExternalOutputTime(at_u32 uiIndex, at_u64 * puiDelay, at_u64 * puiWidth);
+unsigned int WINAPI GetDDGExternalOutputTime(at_u32 uiIndex, at_u64 * puiDelay, at_u64 * puiWidth);
 ```
 """
 function GetDDGExternalOutputTime(uiIndex, puiDelay, puiWidth)
-    @ccall libandor.GetDDGExternalOutputTime(uiIndex::Cuint, puiDelay::Ptr{Culonglong}, puiWidth::Ptr{Culonglong})::Cuint
+    @ccall libandor2.GetDDGExternalOutputTime(uiIndex::Culong, puiDelay::Ptr{Culonglong}, puiWidth::Ptr{Culonglong})::Cuint
 end
 
 """
@@ -528,11 +515,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGTTLGateWidth(at_u64 opticalWidth, at_u64 * ttlWidth);
+unsigned int WINAPI GetDDGTTLGateWidth(at_u64 opticalWidth, at_u64 * ttlWidth);
 ```
 """
 function GetDDGTTLGateWidth(opticalWidth, ttlWidth)
-    @ccall libandor.GetDDGTTLGateWidth(opticalWidth::Culonglong, ttlWidth::Ptr{Culonglong})::Cuint
+    @ccall libandor2.GetDDGTTLGateWidth(opticalWidth::Culonglong, ttlWidth::Ptr{Culonglong})::Cuint
 end
 
 """
@@ -540,11 +527,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGGateTime(at_u64 * puiDelay, at_u64 * puiWidth);
+unsigned int WINAPI GetDDGGateTime(at_u64 * puiDelay, at_u64 * puiWidth);
 ```
 """
 function GetDDGGateTime(puiDelay, puiWidth)
-    @ccall libandor.GetDDGGateTime(puiDelay::Ptr{Culonglong}, puiWidth::Ptr{Culonglong})::Cuint
+    @ccall libandor2.GetDDGGateTime(puiDelay::Ptr{Culonglong}, puiWidth::Ptr{Culonglong})::Cuint
 end
 
 """
@@ -552,11 +539,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGInsertionDelay(int * piState);
+unsigned int WINAPI GetDDGInsertionDelay(int * piState);
 ```
 """
 function GetDDGInsertionDelay(piState)
-    @ccall libandor.GetDDGInsertionDelay(piState::Ptr{Cint})::Cuint
+    @ccall libandor2.GetDDGInsertionDelay(piState::Ptr{Cint})::Cuint
 end
 
 """
@@ -564,11 +551,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGIntelligate(int * piState);
+unsigned int WINAPI GetDDGIntelligate(int * piState);
 ```
 """
 function GetDDGIntelligate(piState)
-    @ccall libandor.GetDDGIntelligate(piState::Ptr{Cint})::Cuint
+    @ccall libandor2.GetDDGIntelligate(piState::Ptr{Cint})::Cuint
 end
 
 """
@@ -576,11 +563,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGIOC(int * state);
+unsigned int WINAPI GetDDGIOC(int * state);
 ```
 """
 function GetDDGIOC(state)
-    @ccall libandor.GetDDGIOC(state::Ptr{Cint})::Cuint
+    @ccall libandor2.GetDDGIOC(state::Ptr{Cint})::Cuint
 end
 
 """
@@ -588,11 +575,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGIOCFrequency(double * frequency);
+unsigned int WINAPI GetDDGIOCFrequency(double * frequency);
 ```
 """
 function GetDDGIOCFrequency(frequency)
-    @ccall libandor.GetDDGIOCFrequency(frequency::Ptr{Cdouble})::Cuint
+    @ccall libandor2.GetDDGIOCFrequency(frequency::Ptr{Cdouble})::Cuint
 end
 
 """
@@ -600,11 +587,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGIOCNumber(unsigned long * numberPulses);
+unsigned int WINAPI GetDDGIOCNumber(unsigned long * numberPulses);
 ```
 """
 function GetDDGIOCNumber(numberPulses)
-    @ccall libandor.GetDDGIOCNumber(numberPulses::Ptr{Culong})::Cuint
+    @ccall libandor2.GetDDGIOCNumber(numberPulses::Ptr{Culong})::Cuint
 end
 
 """
@@ -612,11 +599,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGIOCNumberRequested(at_u32 * pulses);
+unsigned int WINAPI GetDDGIOCNumberRequested(at_u32 * pulses);
 ```
 """
 function GetDDGIOCNumberRequested(pulses)
-    @ccall libandor.GetDDGIOCNumberRequested(pulses::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetDDGIOCNumberRequested(pulses::Ptr{Culong})::Cuint
 end
 
 """
@@ -624,11 +611,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGIOCPeriod(at_u64 * period);
+unsigned int WINAPI GetDDGIOCPeriod(at_u64 * period);
 ```
 """
 function GetDDGIOCPeriod(period)
-    @ccall libandor.GetDDGIOCPeriod(period::Ptr{Culonglong})::Cuint
+    @ccall libandor2.GetDDGIOCPeriod(period::Ptr{Culonglong})::Cuint
 end
 
 """
@@ -636,11 +623,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGIOCPulses(int * pulses);
+unsigned int WINAPI GetDDGIOCPulses(int * pulses);
 ```
 """
 function GetDDGIOCPulses(pulses)
-    @ccall libandor.GetDDGIOCPulses(pulses::Ptr{Cint})::Cuint
+    @ccall libandor2.GetDDGIOCPulses(pulses::Ptr{Cint})::Cuint
 end
 
 """
@@ -648,11 +635,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGIOCTrigger(at_u32 * trigger);
+unsigned int WINAPI GetDDGIOCTrigger(at_u32 * trigger);
 ```
 """
 function GetDDGIOCTrigger(trigger)
-    @ccall libandor.GetDDGIOCTrigger(trigger::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetDDGIOCTrigger(trigger::Ptr{Culong})::Cuint
 end
 
 """
@@ -660,11 +647,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGOpticalWidthEnabled(at_u32 * puiEnabled);
+unsigned int WINAPI GetDDGOpticalWidthEnabled(at_u32 * puiEnabled);
 ```
 """
 function GetDDGOpticalWidthEnabled(puiEnabled)
-    @ccall libandor.GetDDGOpticalWidthEnabled(puiEnabled::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetDDGOpticalWidthEnabled(puiEnabled::Ptr{Culong})::Cuint
 end
 
 """
@@ -672,11 +659,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGLiteGlobalControlByte(unsigned char * control);
+unsigned int WINAPI GetDDGLiteGlobalControlByte(unsigned char * control);
 ```
 """
 function GetDDGLiteGlobalControlByte(control)
-    @ccall libandor.GetDDGLiteGlobalControlByte(control::Ptr{Cuchar})::Cuint
+    @ccall libandor2.GetDDGLiteGlobalControlByte(control::Ptr{Cuchar})::Cuint
 end
 
 """
@@ -684,11 +671,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGLiteControlByte(AT_DDGLiteChannelId channel, unsigned char * control);
+unsigned int WINAPI GetDDGLiteControlByte(AT_DDGLiteChannelId channel, unsigned char * control);
 ```
 """
 function GetDDGLiteControlByte(channel, control)
-    @ccall libandor.GetDDGLiteControlByte(channel::AT_DDGLiteChannelId, control::Ptr{Cuchar})::Cuint
+    @ccall libandor2.GetDDGLiteControlByte(channel::AT_DDGLiteChannelId, control::Ptr{Cuchar})::Cuint
 end
 
 """
@@ -696,11 +683,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGLiteInitialDelay(AT_DDGLiteChannelId channel, float * fDelay);
+unsigned int WINAPI GetDDGLiteInitialDelay(AT_DDGLiteChannelId channel, float * fDelay);
 ```
 """
 function GetDDGLiteInitialDelay(channel, fDelay)
-    @ccall libandor.GetDDGLiteInitialDelay(channel::AT_DDGLiteChannelId, fDelay::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetDDGLiteInitialDelay(channel::AT_DDGLiteChannelId, fDelay::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -708,11 +695,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGLitePulseWidth(AT_DDGLiteChannelId channel, float * fWidth);
+unsigned int WINAPI GetDDGLitePulseWidth(AT_DDGLiteChannelId channel, float * fWidth);
 ```
 """
 function GetDDGLitePulseWidth(channel, fWidth)
-    @ccall libandor.GetDDGLitePulseWidth(channel::AT_DDGLiteChannelId, fWidth::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetDDGLitePulseWidth(channel::AT_DDGLiteChannelId, fWidth::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -720,11 +707,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGLiteInterPulseDelay(AT_DDGLiteChannelId channel, float * fDelay);
+unsigned int WINAPI GetDDGLiteInterPulseDelay(AT_DDGLiteChannelId channel, float * fDelay);
 ```
 """
 function GetDDGLiteInterPulseDelay(channel, fDelay)
-    @ccall libandor.GetDDGLiteInterPulseDelay(channel::AT_DDGLiteChannelId, fDelay::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetDDGLiteInterPulseDelay(channel::AT_DDGLiteChannelId, fDelay::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -732,11 +719,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGLitePulsesPerExposure(AT_DDGLiteChannelId channel, at_u32 * ui32Pulses);
+unsigned int WINAPI GetDDGLitePulsesPerExposure(AT_DDGLiteChannelId channel, at_u32 * ui32Pulses);
 ```
 """
 function GetDDGLitePulsesPerExposure(channel, ui32Pulses)
-    @ccall libandor.GetDDGLitePulsesPerExposure(channel::AT_DDGLiteChannelId, ui32Pulses::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetDDGLitePulsesPerExposure(channel::AT_DDGLiteChannelId, ui32Pulses::Ptr{Culong})::Cuint
 end
 
 """
@@ -744,11 +731,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGPulse(double wid, double resolution, double * Delay, double * Width);
+unsigned int WINAPI GetDDGPulse(double wid, double resolution, double * Delay, double * Width);
 ```
 """
 function GetDDGPulse(wid, resolution, Delay, Width)
-    @ccall libandor.GetDDGPulse(wid::Cdouble, resolution::Cdouble, Delay::Ptr{Cdouble}, Width::Ptr{Cdouble})::Cuint
+    @ccall libandor2.GetDDGPulse(wid::Cdouble, resolution::Cdouble, Delay::Ptr{Cdouble}, Width::Ptr{Cdouble})::Cuint
 end
 
 """
@@ -756,11 +743,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGStepCoefficients(at_u32 mode, double * p1, double * p2);
+unsigned int WINAPI GetDDGStepCoefficients(at_u32 mode, double * p1, double * p2);
 ```
 """
 function GetDDGStepCoefficients(mode, p1, p2)
-    @ccall libandor.GetDDGStepCoefficients(mode::Cuint, p1::Ptr{Cdouble}, p2::Ptr{Cdouble})::Cuint
+    @ccall libandor2.GetDDGStepCoefficients(mode::Culong, p1::Ptr{Cdouble}, p2::Ptr{Cdouble})::Cuint
 end
 
 """
@@ -768,11 +755,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGWidthStepCoefficients(at_u32 mode, double * p1, double * p2);
+unsigned int WINAPI GetDDGWidthStepCoefficients(at_u32 mode, double * p1, double * p2);
 ```
 """
 function GetDDGWidthStepCoefficients(mode, p1, p2)
-    @ccall libandor.GetDDGWidthStepCoefficients(mode::Cuint, p1::Ptr{Cdouble}, p2::Ptr{Cdouble})::Cuint
+    @ccall libandor2.GetDDGWidthStepCoefficients(mode::Culong, p1::Ptr{Cdouble}, p2::Ptr{Cdouble})::Cuint
 end
 
 """
@@ -780,11 +767,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGStepMode(at_u32 * mode);
+unsigned int WINAPI GetDDGStepMode(at_u32 * mode);
 ```
 """
 function GetDDGStepMode(mode)
-    @ccall libandor.GetDDGStepMode(mode::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetDDGStepMode(mode::Ptr{Culong})::Cuint
 end
 
 """
@@ -792,11 +779,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDDGWidthStepMode(at_u32 * mode);
+unsigned int WINAPI GetDDGWidthStepMode(at_u32 * mode);
 ```
 """
 function GetDDGWidthStepMode(mode)
-    @ccall libandor.GetDDGWidthStepMode(mode::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetDDGWidthStepMode(mode::Ptr{Culong})::Cuint
 end
 
 """
@@ -804,11 +791,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDetector(int * xpixels, int * ypixels);
+unsigned int WINAPI GetDetector(int * xpixels, int * ypixels);
 ```
 """
 function GetDetector(xpixels, ypixels)
-    @ccall libandor.GetDetector(xpixels::Ptr{Cint}, ypixels::Ptr{Cint})::Cuint
+    @ccall libandor2.GetDetector(xpixels::Ptr{Cint}, ypixels::Ptr{Cint})::Cuint
 end
 
 """
@@ -816,11 +803,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDICameraInfo(void * info);
+unsigned int WINAPI GetDICameraInfo(void * info);
 ```
 """
 function GetDICameraInfo(info)
-    @ccall libandor.GetDICameraInfo(info::Ptr{Cvoid})::Cuint
+    @ccall libandor2.GetDICameraInfo(info::Ptr{Cvoid})::Cuint
 end
 
 """
@@ -828,11 +815,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetEMAdvanced(int * state);
+unsigned int WINAPI GetEMAdvanced(int * state);
 ```
 """
 function GetEMAdvanced(state)
-    @ccall libandor.GetEMAdvanced(state::Ptr{Cint})::Cuint
+    @ccall libandor2.GetEMAdvanced(state::Ptr{Cint})::Cuint
 end
 
 """
@@ -840,11 +827,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetEMCCDGain(int * gain);
+unsigned int WINAPI GetEMCCDGain(int * gain);
 ```
 """
 function GetEMCCDGain(gain)
-    @ccall libandor.GetEMCCDGain(gain::Ptr{Cint})::Cuint
+    @ccall libandor2.GetEMCCDGain(gain::Ptr{Cint})::Cuint
 end
 
 """
@@ -852,23 +839,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetEMGainRange(int * low, int * high);
+unsigned int WINAPI GetEMGainRange(int * low, int * high);
 ```
 """
 function GetEMGainRange(low, high)
-    @ccall libandor.GetEMGainRange(low::Ptr{Cint}, high::Ptr{Cint})::Cuint
-end
-
-"""
-    GetESDEventStatus(camStatus)
-
-### Prototype
-```c
-unsigned int GetESDEventStatus(at_u32 * camStatus);
-```
-"""
-function GetESDEventStatus(camStatus)
-    @ccall libandor.GetESDEventStatus(camStatus::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetEMGainRange(low::Ptr{Cint}, high::Ptr{Cint})::Cuint
 end
 
 """
@@ -876,11 +851,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetExternalTriggerTermination(at_u32 * puiTermination);
+unsigned int WINAPI GetExternalTriggerTermination(at_u32 * puiTermination);
 ```
 """
 function GetExternalTriggerTermination(puiTermination)
-    @ccall libandor.GetExternalTriggerTermination(puiTermination::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetExternalTriggerTermination(puiTermination::Ptr{Culong})::Cuint
 end
 
 """
@@ -888,11 +863,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetFastestRecommendedVSSpeed(int * index, float * speed);
+unsigned int WINAPI GetFastestRecommendedVSSpeed(int * index, float * speed);
 ```
 """
 function GetFastestRecommendedVSSpeed(index, speed)
-    @ccall libandor.GetFastestRecommendedVSSpeed(index::Ptr{Cint}, speed::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetFastestRecommendedVSSpeed(index::Ptr{Cint}, speed::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -900,11 +875,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetFIFOUsage(int * FIFOusage);
+unsigned int WINAPI GetFIFOUsage(int * FIFOusage);
 ```
 """
 function GetFIFOUsage(FIFOusage)
-    @ccall libandor.GetFIFOUsage(FIFOusage::Ptr{Cint})::Cuint
+    @ccall libandor2.GetFIFOUsage(FIFOusage::Ptr{Cint})::Cuint
 end
 
 """
@@ -912,11 +887,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetFilterMode(int * mode);
+unsigned int WINAPI GetFilterMode(int * mode);
 ```
 """
 function GetFilterMode(mode)
-    @ccall libandor.GetFilterMode(mode::Ptr{Cint})::Cuint
+    @ccall libandor2.GetFilterMode(mode::Ptr{Cint})::Cuint
 end
 
 """
@@ -924,11 +899,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetFKExposureTime(float * time);
+unsigned int WINAPI GetFKExposureTime(float * time);
 ```
 """
 function GetFKExposureTime(time)
-    @ccall libandor.GetFKExposureTime(time::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetFKExposureTime(time::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -936,11 +911,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetFKVShiftSpeed(int index, int * speed);
+unsigned int WINAPI GetFKVShiftSpeed(int index, int * speed);
 ```
 """
 function GetFKVShiftSpeed(index, speed)
-    @ccall libandor.GetFKVShiftSpeed(index::Cint, speed::Ptr{Cint})::Cuint
+    @ccall libandor2.GetFKVShiftSpeed(index::Cint, speed::Ptr{Cint})::Cuint
 end
 
 """
@@ -948,11 +923,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetFKVShiftSpeedF(int index, float * speed);
+unsigned int WINAPI GetFKVShiftSpeedF(int index, float * speed);
 ```
 """
 function GetFKVShiftSpeedF(index, speed)
-    @ccall libandor.GetFKVShiftSpeedF(index::Cint, speed::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetFKVShiftSpeedF(index::Cint, speed::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -960,11 +935,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetFrontEndStatus(int * piFlag);
+unsigned int WINAPI GetFrontEndStatus(int * piFlag);
 ```
 """
 function GetFrontEndStatus(piFlag)
-    @ccall libandor.GetFrontEndStatus(piFlag::Ptr{Cint})::Cuint
+    @ccall libandor2.GetFrontEndStatus(piFlag::Ptr{Cint})::Cuint
 end
 
 """
@@ -972,11 +947,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetGateMode(int * piGatemode);
+unsigned int WINAPI GetGateMode(int * piGatemode);
 ```
 """
 function GetGateMode(piGatemode)
-    @ccall libandor.GetGateMode(piGatemode::Ptr{Cint})::Cuint
+    @ccall libandor2.GetGateMode(piGatemode::Ptr{Cint})::Cuint
 end
 
 """
@@ -984,11 +959,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetHardwareVersion(unsigned int * PCB, unsigned int * Decode, unsigned int * dummy1, unsigned int * dummy2, unsigned int * CameraFirmwareVersion, unsigned int * CameraFirmwareBuild);
+unsigned int WINAPI GetHardwareVersion(unsigned int * PCB, unsigned int * Decode, unsigned int * dummy1, unsigned int * dummy2, unsigned int * CameraFirmwareVersion, unsigned int * CameraFirmwareBuild);
 ```
 """
 function GetHardwareVersion(PCB, Decode, dummy1, dummy2, CameraFirmwareVersion, CameraFirmwareBuild)
-    @ccall libandor.GetHardwareVersion(PCB::Ptr{Cuint}, Decode::Ptr{Cuint}, dummy1::Ptr{Cuint}, dummy2::Ptr{Cuint}, CameraFirmwareVersion::Ptr{Cuint}, CameraFirmwareBuild::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetHardwareVersion(PCB::Ptr{Cuint}, Decode::Ptr{Cuint}, dummy1::Ptr{Cuint}, dummy2::Ptr{Cuint}, CameraFirmwareVersion::Ptr{Cuint}, CameraFirmwareBuild::Ptr{Cuint})::Cuint
 end
 
 """
@@ -996,11 +971,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetHeadModel(char * name);
+unsigned int WINAPI GetHeadModel(char * name);
 ```
 """
 function GetHeadModel(name)
-    @ccall libandor.GetHeadModel(name::Cstring)::Cuint
+    @ccall libandor2.GetHeadModel(name::Cstring)::Cuint
 end
 
 """
@@ -1008,11 +983,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetHorizontalSpeed(int index, int * speed);
+unsigned int WINAPI GetHorizontalSpeed(int index, int * speed);
 ```
 """
 function GetHorizontalSpeed(index, speed)
-    @ccall libandor.GetHorizontalSpeed(index::Cint, speed::Ptr{Cint})::Cuint
+    @ccall libandor2.GetHorizontalSpeed(index::Cint, speed::Ptr{Cint})::Cuint
 end
 
 """
@@ -1020,11 +995,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetHSSpeed(int channel, int typ, int index, float * speed);
+unsigned int WINAPI GetHSSpeed(int channel, int typ, int index, float * speed);
 ```
 """
 function GetHSSpeed(channel, typ, index, speed)
-    @ccall libandor.GetHSSpeed(channel::Cint, typ::Cint, index::Cint, speed::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetHSSpeed(channel::Cint, typ::Cint, index::Cint, speed::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -1032,11 +1007,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetHVflag(int * bFlag);
+unsigned int WINAPI GetHVflag(int * bFlag);
 ```
 """
 function GetHVflag(bFlag)
-    @ccall libandor.GetHVflag(bFlag::Ptr{Cint})::Cuint
+    @ccall libandor2.GetHVflag(bFlag::Ptr{Cint})::Cuint
 end
 
 """
@@ -1044,11 +1019,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetID(int devNum, int * id);
+unsigned int WINAPI GetID(int devNum, int * id);
 ```
 """
 function GetID(devNum, id)
-    @ccall libandor.GetID(devNum::Cint, id::Ptr{Cint})::Cuint
+    @ccall libandor2.GetID(devNum::Cint, id::Ptr{Cint})::Cuint
 end
 
 """
@@ -1056,11 +1031,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetImageFlip(int * iHFlip, int * iVFlip);
+unsigned int WINAPI GetImageFlip(int * iHFlip, int * iVFlip);
 ```
 """
 function GetImageFlip(iHFlip, iVFlip)
-    @ccall libandor.GetImageFlip(iHFlip::Ptr{Cint}, iVFlip::Ptr{Cint})::Cuint
+    @ccall libandor2.GetImageFlip(iHFlip::Ptr{Cint}, iVFlip::Ptr{Cint})::Cuint
 end
 
 """
@@ -1068,11 +1043,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetImageRotate(int * iRotate);
+unsigned int WINAPI GetImageRotate(int * iRotate);
 ```
 """
 function GetImageRotate(iRotate)
-    @ccall libandor.GetImageRotate(iRotate::Ptr{Cint})::Cuint
+    @ccall libandor2.GetImageRotate(iRotate::Ptr{Cint})::Cuint
 end
 
 """
@@ -1080,11 +1055,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetImages(at_32 first, at_32 last, at_32 * arr, at_u32 size, at_32 * validfirst, at_32 * validlast);
+unsigned int WINAPI GetImages(long first, long last, at_32 * arr, unsigned long size, long * validfirst, long * validlast);
 ```
 """
 function GetImages(first, last, arr, size, validfirst, validlast)
-    @ccall libandor.GetImages(first::Cint, last::Cint, arr::Ptr{Cint}, size::Cuint, validfirst::Ptr{Cint}, validlast::Ptr{Cint})::Cuint
+    @ccall libandor2.GetImages(first::Clong, last::Clong, arr::Ptr{Clong}, size::Culong, validfirst::Ptr{Clong}, validlast::Ptr{Clong})::Cuint
 end
 
 """
@@ -1092,11 +1067,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetImages16(at_32 first, at_32 last, unsigned short * arr, at_u32 size, at_32 * validfirst, at_32 * validlast);
+unsigned int WINAPI GetImages16(long first, long last, WORD * arr, unsigned long size, long * validfirst, long * validlast);
 ```
 """
 function GetImages16(first, last, arr, size, validfirst, validlast)
-    @ccall libandor.GetImages16(first::Cint, last::Cint, arr::Ptr{Cushort}, size::Cuint, validfirst::Ptr{Cint}, validlast::Ptr{Cint})::Cuint
+    @ccall libandor2.GetImages16(first::Clong, last::Clong, arr::Ptr{WORD}, size::Culong, validfirst::Ptr{Clong}, validlast::Ptr{Clong})::Cuint
 end
 
 """
@@ -1104,11 +1079,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetImagesPerDMA(at_u32 * images);
+unsigned int WINAPI GetImagesPerDMA(unsigned long * images);
 ```
 """
 function GetImagesPerDMA(images)
-    @ccall libandor.GetImagesPerDMA(images::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetImagesPerDMA(images::Ptr{Culong})::Cuint
 end
 
 """
@@ -1116,11 +1091,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetIRQ(int * IRQ);
+unsigned int WINAPI GetIRQ(int * IRQ);
 ```
 """
 function GetIRQ(IRQ)
-    @ccall libandor.GetIRQ(IRQ::Ptr{Cint})::Cuint
+    @ccall libandor2.GetIRQ(IRQ::Ptr{Cint})::Cuint
 end
 
 """
@@ -1128,11 +1103,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetKeepCleanTime(float * KeepCleanTime);
+unsigned int WINAPI GetKeepCleanTime(float * KeepCleanTime);
 ```
 """
 function GetKeepCleanTime(KeepCleanTime)
-    @ccall libandor.GetKeepCleanTime(KeepCleanTime::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetKeepCleanTime(KeepCleanTime::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -1140,11 +1115,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetMaximumBinning(int ReadMode, int HorzVert, int * MaxBinning);
+unsigned int WINAPI GetMaximumBinning(int ReadMode, int HorzVert, int * MaxBinning);
 ```
 """
 function GetMaximumBinning(ReadMode, HorzVert, MaxBinning)
-    @ccall libandor.GetMaximumBinning(ReadMode::Cint, HorzVert::Cint, MaxBinning::Ptr{Cint})::Cuint
+    @ccall libandor2.GetMaximumBinning(ReadMode::Cint, HorzVert::Cint, MaxBinning::Ptr{Cint})::Cuint
 end
 
 """
@@ -1152,11 +1127,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetMaximumExposure(float * MaxExp);
+unsigned int WINAPI GetMaximumExposure(float * MaxExp);
 ```
 """
 function GetMaximumExposure(MaxExp)
-    @ccall libandor.GetMaximumExposure(MaxExp::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetMaximumExposure(MaxExp::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -1164,11 +1139,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetMaximumNumberRingExposureTimes(int * number);
+unsigned int WINAPI GetMaximumNumberRingExposureTimes(int * number);
 ```
 """
 function GetMaximumNumberRingExposureTimes(number)
-    @ccall libandor.GetMaximumNumberRingExposureTimes(number::Ptr{Cint})::Cuint
+    @ccall libandor2.GetMaximumNumberRingExposureTimes(number::Ptr{Cint})::Cuint
 end
 
 """
@@ -1176,11 +1151,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetMCPGain(int * piGain);
+unsigned int WINAPI GetMCPGain(int * piGain);
 ```
 """
 function GetMCPGain(piGain)
-    @ccall libandor.GetMCPGain(piGain::Ptr{Cint})::Cuint
+    @ccall libandor2.GetMCPGain(piGain::Ptr{Cint})::Cuint
 end
 
 """
@@ -1188,11 +1163,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetMCPGainRange(int * iLow, int * iHigh);
+unsigned int WINAPI GetMCPGainRange(int * iLow, int * iHigh);
 ```
 """
 function GetMCPGainRange(iLow, iHigh)
-    @ccall libandor.GetMCPGainRange(iLow::Ptr{Cint}, iHigh::Ptr{Cint})::Cuint
+    @ccall libandor2.GetMCPGainRange(iLow::Ptr{Cint}, iHigh::Ptr{Cint})::Cuint
 end
 
 """
@@ -1200,11 +1175,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetMCPGainTable(int iNum, int * piGain, float * pfPhotoepc);
+unsigned int WINAPI GetMCPGainTable(int iNum, int * piGain, float * pfPhotoepc);
 ```
 """
 function GetMCPGainTable(iNum, piGain, pfPhotoepc)
-    @ccall libandor.GetMCPGainTable(iNum::Cint, piGain::Ptr{Cint}, pfPhotoepc::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetMCPGainTable(iNum::Cint, piGain::Ptr{Cint}, pfPhotoepc::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -1212,11 +1187,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetMCPVoltage(int * iVoltage);
+unsigned int WINAPI GetMCPVoltage(int * iVoltage);
 ```
 """
 function GetMCPVoltage(iVoltage)
-    @ccall libandor.GetMCPVoltage(iVoltage::Ptr{Cint})::Cuint
+    @ccall libandor2.GetMCPVoltage(iVoltage::Ptr{Cint})::Cuint
 end
 
 """
@@ -1224,11 +1199,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetMinimumImageLength(int * MinImageLength);
+unsigned int WINAPI GetMinimumImageLength(int * MinImageLength);
 ```
 """
 function GetMinimumImageLength(MinImageLength)
-    @ccall libandor.GetMinimumImageLength(MinImageLength::Ptr{Cint})::Cuint
+    @ccall libandor2.GetMinimumImageLength(MinImageLength::Ptr{Cint})::Cuint
 end
 
 """
@@ -1236,11 +1211,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetMinimumNumberInSeries(int * number);
+unsigned int WINAPI GetMinimumNumberInSeries(int * number);
 ```
 """
 function GetMinimumNumberInSeries(number)
-    @ccall libandor.GetMinimumNumberInSeries(number::Ptr{Cint})::Cuint
+    @ccall libandor2.GetMinimumNumberInSeries(number::Ptr{Cint})::Cuint
 end
 
 """
@@ -1248,11 +1223,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetMostRecentColorImage16(at_u32 size, int algorithm, unsigned short * red, unsigned short * green, unsigned short * blue);
+unsigned int WINAPI GetMostRecentColorImage16(unsigned long size, int algorithm, WORD * red, WORD * green, WORD * blue);
 ```
 """
 function GetMostRecentColorImage16(size, algorithm, red, green, blue)
-    @ccall libandor.GetMostRecentColorImage16(size::Cuint, algorithm::Cint, red::Ptr{Cushort}, green::Ptr{Cushort}, blue::Ptr{Cushort})::Cuint
+    @ccall libandor2.GetMostRecentColorImage16(size::Culong, algorithm::Cint, red::Ptr{WORD}, green::Ptr{WORD}, blue::Ptr{WORD})::Cuint
 end
 
 """
@@ -1260,11 +1235,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetMostRecentImage(at_32 * arr, at_u32 size);
+unsigned int WINAPI GetMostRecentImage(at_32 * arr, unsigned long size);
 ```
 """
 function GetMostRecentImage(arr, size)
-    @ccall libandor.GetMostRecentImage(arr::Ptr{Cint}, size::Cuint)::Cuint
+    @ccall libandor2.GetMostRecentImage(arr::Ptr{Clong}, size::Culong)::Cuint
 end
 
 """
@@ -1272,11 +1247,23 @@ end
 
 ### Prototype
 ```c
-unsigned int GetMostRecentImage16(unsigned short * arr, at_u32 size);
+unsigned int WINAPI GetMostRecentImage16(WORD * arr, unsigned long size);
 ```
 """
 function GetMostRecentImage16(arr, size)
-    @ccall libandor.GetMostRecentImage16(arr::Ptr{Cushort}, size::Cuint)::Cuint
+    @ccall libandor2.GetMostRecentImage16(arr::Ptr{WORD}, size::Culong)::Cuint
+end
+
+"""
+    GetMSTimingsData(TimeOfStart, pfDifferences, inoOfImages)
+
+### Prototype
+```c
+unsigned int WINAPI GetMSTimingsData(SYSTEMTIME * TimeOfStart, float * pfDifferences, int inoOfImages);
+```
+"""
+function GetMSTimingsData(TimeOfStart, pfDifferences, inoOfImages)
+    @ccall libandor2.GetMSTimingsData(TimeOfStart::Ptr{SYSTEMTIME}, pfDifferences::Ptr{Cfloat}, inoOfImages::Cint)::Cuint
 end
 
 """
@@ -1284,24 +1271,23 @@ end
 
 ### Prototype
 ```c
-unsigned int GetMetaDataInfo(SYSTEMTIME * TimeOfStart, float * pfTimeFromStart, unsigned int index);
+unsigned int WINAPI GetMetaDataInfo(SYSTEMTIME * TimeOfStart, float * pfTimeFromStart, unsigned int index);
 ```
 """
 function GetMetaDataInfo(TimeOfStart, pfTimeFromStart, index)
-    @ccall libandor.GetMetaDataInfo(TimeOfStart::Ptr{SYSTEMTIME}, pfTimeFromStart::Ptr{Cfloat}, index::Cuint)::Cuint
+    @ccall libandor2.GetMetaDataInfo(TimeOfStart::Ptr{SYSTEMTIME}, pfTimeFromStart::Ptr{Cfloat}, index::Cuint)::Cuint
 end
 
-# no prototype is found for this function at atmcdLXd.h:251:14, please use with caution
 """
     GetMSTimingsEnabled()
 
 ### Prototype
 ```c
-unsigned int GetMSTimingsEnabled();
+unsigned int WINAPI GetMSTimingsEnabled(void);
 ```
 """
 function GetMSTimingsEnabled()
-    @ccall libandor.GetMSTimingsEnabled()::Cuint
+    @ccall libandor2.GetMSTimingsEnabled()::Cuint
 end
 
 """
@@ -1309,11 +1295,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNewData(at_32 * arr, at_u32 size);
+unsigned int WINAPI GetNewData(at_32 * arr, unsigned long size);
 ```
 """
 function GetNewData(arr, size)
-    @ccall libandor.GetNewData(arr::Ptr{Cint}, size::Cuint)::Cuint
+    @ccall libandor2.GetNewData(arr::Ptr{Clong}, size::Culong)::Cuint
 end
 
 """
@@ -1321,11 +1307,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNewData16(unsigned short * arr, at_u32 size);
+unsigned int WINAPI GetNewData16(WORD * arr, unsigned long size);
 ```
 """
 function GetNewData16(arr, size)
-    @ccall libandor.GetNewData16(arr::Ptr{Cushort}, size::Cuint)::Cuint
+    @ccall libandor2.GetNewData16(arr::Ptr{WORD}, size::Culong)::Cuint
 end
 
 """
@@ -1333,11 +1319,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNewData8(unsigned char * arr, at_u32 size);
+unsigned int WINAPI GetNewData8(unsigned char * arr, unsigned long size);
 ```
 """
 function GetNewData8(arr, size)
-    @ccall libandor.GetNewData8(arr::Ptr{Cuchar}, size::Cuint)::Cuint
+    @ccall libandor2.GetNewData8(arr::Ptr{Cuchar}, size::Culong)::Cuint
 end
 
 """
@@ -1345,11 +1331,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNewFloatData(float * arr, at_u32 size);
+unsigned int WINAPI GetNewFloatData(float * arr, unsigned long size);
 ```
 """
 function GetNewFloatData(arr, size)
-    @ccall libandor.GetNewFloatData(arr::Ptr{Cfloat}, size::Cuint)::Cuint
+    @ccall libandor2.GetNewFloatData(arr::Ptr{Cfloat}, size::Culong)::Cuint
 end
 
 """
@@ -1357,11 +1343,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberADChannels(int * channels);
+unsigned int WINAPI GetNumberADChannels(int * channels);
 ```
 """
 function GetNumberADChannels(channels)
-    @ccall libandor.GetNumberADChannels(channels::Ptr{Cint})::Cuint
+    @ccall libandor2.GetNumberADChannels(channels::Ptr{Cint})::Cuint
 end
 
 """
@@ -1369,11 +1355,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberAmp(int * amp);
+unsigned int WINAPI GetNumberAmp(int * amp);
 ```
 """
 function GetNumberAmp(amp)
-    @ccall libandor.GetNumberAmp(amp::Ptr{Cint})::Cuint
+    @ccall libandor2.GetNumberAmp(amp::Ptr{Cint})::Cuint
 end
 
 """
@@ -1381,11 +1367,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberAvailableImages(at_32 * first, at_32 * last);
+unsigned int WINAPI GetNumberAvailableImages(at_32 * first, at_32 * last);
 ```
 """
 function GetNumberAvailableImages(first, last)
-    @ccall libandor.GetNumberAvailableImages(first::Ptr{Cint}, last::Ptr{Cint})::Cuint
+    @ccall libandor2.GetNumberAvailableImages(first::Ptr{Clong}, last::Ptr{Clong})::Cuint
 end
 
 """
@@ -1393,11 +1379,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberDDGExternalOutputs(at_u32 * puiCount);
+unsigned int WINAPI GetNumberDDGExternalOutputs(at_u32 * puiCount);
 ```
 """
 function GetNumberDDGExternalOutputs(puiCount)
-    @ccall libandor.GetNumberDDGExternalOutputs(puiCount::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetNumberDDGExternalOutputs(puiCount::Ptr{Culong})::Cuint
 end
 
 """
@@ -1405,11 +1391,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberDevices(int * numDevs);
+unsigned int WINAPI GetNumberDevices(int * numDevs);
 ```
 """
 function GetNumberDevices(numDevs)
-    @ccall libandor.GetNumberDevices(numDevs::Ptr{Cint})::Cuint
+    @ccall libandor2.GetNumberDevices(numDevs::Ptr{Cint})::Cuint
 end
 
 """
@@ -1417,11 +1403,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberFKVShiftSpeeds(int * number);
+unsigned int WINAPI GetNumberFKVShiftSpeeds(int * number);
 ```
 """
 function GetNumberFKVShiftSpeeds(number)
-    @ccall libandor.GetNumberFKVShiftSpeeds(number::Ptr{Cint})::Cuint
+    @ccall libandor2.GetNumberFKVShiftSpeeds(number::Ptr{Cint})::Cuint
 end
 
 """
@@ -1429,11 +1415,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberHorizontalSpeeds(int * number);
+unsigned int WINAPI GetNumberHorizontalSpeeds(int * number);
 ```
 """
 function GetNumberHorizontalSpeeds(number)
-    @ccall libandor.GetNumberHorizontalSpeeds(number::Ptr{Cint})::Cuint
+    @ccall libandor2.GetNumberHorizontalSpeeds(number::Ptr{Cint})::Cuint
 end
 
 """
@@ -1441,11 +1427,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberHSSpeeds(int channel, int typ, int * speeds);
+unsigned int WINAPI GetNumberHSSpeeds(int channel, int typ, int * speeds);
 ```
 """
 function GetNumberHSSpeeds(channel, typ, speeds)
-    @ccall libandor.GetNumberHSSpeeds(channel::Cint, typ::Cint, speeds::Ptr{Cint})::Cuint
+    @ccall libandor2.GetNumberHSSpeeds(channel::Cint, typ::Cint, speeds::Ptr{Cint})::Cuint
 end
 
 """
@@ -1453,11 +1439,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberMissedExternalTriggers(unsigned int first, unsigned int last, unsigned short * arr, unsigned int size);
+unsigned int WINAPI GetNumberMissedExternalTriggers(unsigned int first, unsigned int last, WORD * arr, unsigned int size);
 ```
 """
 function GetNumberMissedExternalTriggers(first, last, arr, size)
-    @ccall libandor.GetNumberMissedExternalTriggers(first::Cuint, last::Cuint, arr::Ptr{Cushort}, size::Cuint)::Cuint
+    @ccall libandor2.GetNumberMissedExternalTriggers(first::Cuint, last::Cuint, arr::Ptr{WORD}, size::Cuint)::Cuint
 end
 
 """
@@ -1465,11 +1451,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetIRIGData(unsigned char * _uc_irigData, unsigned int _ui_index);
+unsigned int WINAPI GetIRIGData(unsigned char * _uc_irigData, unsigned int _ui_index);
 ```
 """
 function GetIRIGData(_uc_irigData, _ui_index)
-    @ccall libandor.GetIRIGData(_uc_irigData::Ptr{Cuchar}, _ui_index::Cuint)::Cuint
+    @ccall libandor2.GetIRIGData(_uc_irigData::Ptr{Cuchar}, _ui_index::Cuint)::Cuint
 end
 
 """
@@ -1477,11 +1463,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberNewImages(at_32 * first, at_32 * last);
+unsigned int WINAPI GetNumberNewImages(long * first, long * last);
 ```
 """
 function GetNumberNewImages(first, last)
-    @ccall libandor.GetNumberNewImages(first::Ptr{Cint}, last::Ptr{Cint})::Cuint
+    @ccall libandor2.GetNumberNewImages(first::Ptr{Clong}, last::Ptr{Clong})::Cuint
 end
 
 """
@@ -1489,11 +1475,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberPhotonCountingDivisions(at_u32 * noOfDivisions);
+unsigned int WINAPI GetNumberPhotonCountingDivisions(at_u32 * noOfDivisions);
 ```
 """
 function GetNumberPhotonCountingDivisions(noOfDivisions)
-    @ccall libandor.GetNumberPhotonCountingDivisions(noOfDivisions::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetNumberPhotonCountingDivisions(noOfDivisions::Ptr{Culong})::Cuint
 end
 
 """
@@ -1501,11 +1487,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberPreAmpGains(int * noGains);
+unsigned int WINAPI GetNumberPreAmpGains(int * noGains);
 ```
 """
 function GetNumberPreAmpGains(noGains)
-    @ccall libandor.GetNumberPreAmpGains(noGains::Ptr{Cint})::Cuint
+    @ccall libandor2.GetNumberPreAmpGains(noGains::Ptr{Cint})::Cuint
 end
 
 """
@@ -1513,11 +1499,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberRingExposureTimes(int * ipnumTimes);
+unsigned int WINAPI GetNumberRingExposureTimes(int * ipnumTimes);
 ```
 """
 function GetNumberRingExposureTimes(ipnumTimes)
-    @ccall libandor.GetNumberRingExposureTimes(ipnumTimes::Ptr{Cint})::Cuint
+    @ccall libandor2.GetNumberRingExposureTimes(ipnumTimes::Ptr{Cint})::Cuint
 end
 
 """
@@ -1525,11 +1511,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberIO(int * iNumber);
+unsigned int WINAPI GetNumberIO(int * iNumber);
 ```
 """
 function GetNumberIO(iNumber)
-    @ccall libandor.GetNumberIO(iNumber::Ptr{Cint})::Cuint
+    @ccall libandor2.GetNumberIO(iNumber::Ptr{Cint})::Cuint
 end
 
 """
@@ -1537,11 +1523,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberVerticalSpeeds(int * number);
+unsigned int WINAPI GetNumberVerticalSpeeds(int * number);
 ```
 """
 function GetNumberVerticalSpeeds(number)
-    @ccall libandor.GetNumberVerticalSpeeds(number::Ptr{Cint})::Cuint
+    @ccall libandor2.GetNumberVerticalSpeeds(number::Ptr{Cint})::Cuint
 end
 
 """
@@ -1549,11 +1535,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberVSAmplitudes(int * number);
+unsigned int WINAPI GetNumberVSAmplitudes(int * number);
 ```
 """
 function GetNumberVSAmplitudes(number)
-    @ccall libandor.GetNumberVSAmplitudes(number::Ptr{Cint})::Cuint
+    @ccall libandor2.GetNumberVSAmplitudes(number::Ptr{Cint})::Cuint
 end
 
 """
@@ -1561,11 +1547,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetNumberVSSpeeds(int * speeds);
+unsigned int WINAPI GetNumberVSSpeeds(int * speeds);
 ```
 """
 function GetNumberVSSpeeds(speeds)
-    @ccall libandor.GetNumberVSSpeeds(speeds::Ptr{Cint})::Cuint
+    @ccall libandor2.GetNumberVSSpeeds(speeds::Ptr{Cint})::Cuint
 end
 
 """
@@ -1573,11 +1559,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetOldestImage(at_32 * arr, at_u32 size);
+unsigned int WINAPI GetOldestImage(at_32 * arr, unsigned long size);
 ```
 """
 function GetOldestImage(arr, size)
-    @ccall libandor.GetOldestImage(arr::Ptr{Cint}, size::Cuint)::Cuint
+    @ccall libandor2.GetOldestImage(arr::Ptr{Clong}, size::Culong)::Cuint
 end
 
 """
@@ -1585,11 +1571,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetOldestImage16(unsigned short * arr, at_u32 size);
+unsigned int WINAPI GetOldestImage16(WORD * arr, unsigned long size);
 ```
 """
 function GetOldestImage16(arr, size)
-    @ccall libandor.GetOldestImage16(arr::Ptr{Cushort}, size::Cuint)::Cuint
+    @ccall libandor2.GetOldestImage16(arr::Ptr{WORD}, size::Culong)::Cuint
 end
 
 """
@@ -1597,11 +1583,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetPhosphorStatus(int * piFlag);
+unsigned int WINAPI GetPhosphorStatus(int * piFlag);
 ```
 """
 function GetPhosphorStatus(piFlag)
-    @ccall libandor.GetPhosphorStatus(piFlag::Ptr{Cint})::Cuint
+    @ccall libandor2.GetPhosphorStatus(piFlag::Ptr{Cint})::Cuint
 end
 
 """
@@ -1609,11 +1595,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetPhysicalDMAAddress(at_u32 * Address1, at_u32 * Address2);
+unsigned int WINAPI GetPhysicalDMAAddress(unsigned long * Address1, unsigned long * Address2);
 ```
 """
 function GetPhysicalDMAAddress(Address1, Address2)
-    @ccall libandor.GetPhysicalDMAAddress(Address1::Ptr{Cuint}, Address2::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetPhysicalDMAAddress(Address1::Ptr{Culong}, Address2::Ptr{Culong})::Cuint
 end
 
 """
@@ -1621,11 +1607,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetPixelSize(float * xSize, float * ySize);
+unsigned int WINAPI GetPixelSize(float * xSize, float * ySize);
 ```
 """
 function GetPixelSize(xSize, ySize)
-    @ccall libandor.GetPixelSize(xSize::Ptr{Cfloat}, ySize::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetPixelSize(xSize::Ptr{Cfloat}, ySize::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -1633,11 +1619,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetPreAmpGain(int index, float * gain);
+unsigned int WINAPI GetPreAmpGain(int index, float * gain);
 ```
 """
 function GetPreAmpGain(index, gain)
-    @ccall libandor.GetPreAmpGain(index::Cint, gain::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetPreAmpGain(index::Cint, gain::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -1645,23 +1631,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetPreAmpGainText(int index, char * name, int length);
+unsigned int WINAPI GetPreAmpGainText(int index, char * name, int length);
 ```
 """
 function GetPreAmpGainText(index, name, length)
-    @ccall libandor.GetPreAmpGainText(index::Cint, name::Cstring, length::Cint)::Cuint
-end
-
-"""
-    GetCurrentPreAmpGain(index, name, length)
-
-### Prototype
-```c
-unsigned int GetCurrentPreAmpGain(int * index, char * name, int length);
-```
-"""
-function GetCurrentPreAmpGain(index, name, length)
-    @ccall libandor.GetCurrentPreAmpGain(index::Ptr{Cint}, name::Cstring, length::Cint)::Cuint
+    @ccall libandor2.GetPreAmpGainText(index::Cint, name::Cstring, length::Cint)::Cuint
 end
 
 """
@@ -1669,11 +1643,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetDualExposureTimes(float * exposure1, float * exposure2);
+unsigned int WINAPI GetDualExposureTimes(float * exposure1, float * exposure2);
 ```
 """
 function GetDualExposureTimes(exposure1, exposure2)
-    @ccall libandor.GetDualExposureTimes(exposure1::Ptr{Cfloat}, exposure2::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetDualExposureTimes(exposure1::Ptr{Cfloat}, exposure2::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -1681,11 +1655,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetQE(char * sensor, float wavelength, unsigned int mode, float * QE);
+unsigned int WINAPI GetQE(char * sensor, float wavelength, unsigned int mode, float * QE);
 ```
 """
 function GetQE(sensor, wavelength, mode, QE)
-    @ccall libandor.GetQE(sensor::Cstring, wavelength::Cfloat, mode::Cuint, QE::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetQE(sensor::Cstring, wavelength::Cfloat, mode::Cuint, QE::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -1693,11 +1667,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetReadOutTime(float * ReadOutTime);
+unsigned int WINAPI GetReadOutTime(float * ReadOutTime);
 ```
 """
 function GetReadOutTime(ReadOutTime)
-    @ccall libandor.GetReadOutTime(ReadOutTime::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetReadOutTime(ReadOutTime::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -1705,11 +1679,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetRegisterDump(int * mode);
+unsigned int WINAPI GetRegisterDump(int * mode);
 ```
 """
 function GetRegisterDump(mode)
-    @ccall libandor.GetRegisterDump(mode::Ptr{Cint})::Cuint
+    @ccall libandor2.GetRegisterDump(mode::Ptr{Cint})::Cuint
 end
 
 """
@@ -1717,11 +1691,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetRelativeImageTimes(unsigned int first, unsigned int last, at_u64 * arr, unsigned int size);
+unsigned int WINAPI GetRelativeImageTimes(unsigned int first, unsigned int last, at_u64 * arr, unsigned int size);
 ```
 """
 function GetRelativeImageTimes(first, last, arr, size)
-    @ccall libandor.GetRelativeImageTimes(first::Cuint, last::Cuint, arr::Ptr{Culonglong}, size::Cuint)::Cuint
+    @ccall libandor2.GetRelativeImageTimes(first::Cuint, last::Cuint, arr::Ptr{Culonglong}, size::Cuint)::Cuint
 end
 
 """
@@ -1729,11 +1703,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetRingExposureRange(float * fpMin, float * fpMax);
+unsigned int WINAPI GetRingExposureRange(float * fpMin, float * fpMax);
 ```
 """
 function GetRingExposureRange(fpMin, fpMax)
-    @ccall libandor.GetRingExposureRange(fpMin::Ptr{Cfloat}, fpMax::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetRingExposureRange(fpMin::Ptr{Cfloat}, fpMax::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -1741,11 +1715,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetSDK3Handle(int * Handle);
+unsigned int WINAPI GetSDK3Handle(int * Handle);
 ```
 """
 function GetSDK3Handle(Handle)
-    @ccall libandor.GetSDK3Handle(Handle::Ptr{Cint})::Cuint
+    @ccall libandor2.GetSDK3Handle(Handle::Ptr{Cint})::Cuint
 end
 
 """
@@ -1753,11 +1727,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetSensitivity(int channel, int horzShift, int amplifier, int pa, float * sensitivity);
+unsigned int WINAPI GetSensitivity(int channel, int horzShift, int amplifier, int pa, float * sensitivity);
 ```
 """
 function GetSensitivity(channel, horzShift, amplifier, pa, sensitivity)
-    @ccall libandor.GetSensitivity(channel::Cint, horzShift::Cint, amplifier::Cint, pa::Cint, sensitivity::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetSensitivity(channel::Cint, horzShift::Cint, amplifier::Cint, pa::Cint, sensitivity::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -1765,11 +1739,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetShutterMinTimes(int * minclosingtime, int * minopeningtime);
+unsigned int WINAPI GetShutterMinTimes(int * minclosingtime, int * minopeningtime);
 ```
 """
 function GetShutterMinTimes(minclosingtime, minopeningtime)
-    @ccall libandor.GetShutterMinTimes(minclosingtime::Ptr{Cint}, minopeningtime::Ptr{Cint})::Cuint
+    @ccall libandor2.GetShutterMinTimes(minclosingtime::Ptr{Cint}, minopeningtime::Ptr{Cint})::Cuint
 end
 
 """
@@ -1777,11 +1751,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetSizeOfCircularBuffer(at_32 * index);
+unsigned int WINAPI GetSizeOfCircularBuffer(long * index);
 ```
 """
 function GetSizeOfCircularBuffer(index)
-    @ccall libandor.GetSizeOfCircularBuffer(index::Ptr{Cint})::Cuint
+    @ccall libandor2.GetSizeOfCircularBuffer(index::Ptr{Clong})::Cuint
 end
 
 """
@@ -1789,11 +1763,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetSlotBusDeviceFunction(at_u32 * dwslot, at_u32 * dwBus, at_u32 * dwDevice, at_u32 * dwFunction);
+unsigned int WINAPI GetSlotBusDeviceFunction(DWORD * dwslot, DWORD * dwBus, DWORD * dwDevice, DWORD * dwFunction);
 ```
 """
 function GetSlotBusDeviceFunction(dwslot, dwBus, dwDevice, dwFunction)
-    @ccall libandor.GetSlotBusDeviceFunction(dwslot::Ptr{Cuint}, dwBus::Ptr{Cuint}, dwDevice::Ptr{Cuint}, dwFunction::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetSlotBusDeviceFunction(dwslot::Ptr{DWORD}, dwBus::Ptr{DWORD}, dwDevice::Ptr{DWORD}, dwFunction::Ptr{DWORD})::Cuint
 end
 
 """
@@ -1801,11 +1775,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetSoftwareVersion(unsigned int * eprom, unsigned int * coffile, unsigned int * vxdrev, unsigned int * vxdver, unsigned int * dllrev, unsigned int * dllver);
+unsigned int WINAPI GetSoftwareVersion(unsigned int * eprom, unsigned int * coffile, unsigned int * vxdrev, unsigned int * vxdver, unsigned int * dllrev, unsigned int * dllver);
 ```
 """
 function GetSoftwareVersion(eprom, coffile, vxdrev, vxdver, dllrev, dllver)
-    @ccall libandor.GetSoftwareVersion(eprom::Ptr{Cuint}, coffile::Ptr{Cuint}, vxdrev::Ptr{Cuint}, vxdver::Ptr{Cuint}, dllrev::Ptr{Cuint}, dllver::Ptr{Cuint})::Cuint
+    @ccall libandor2.GetSoftwareVersion(eprom::Ptr{Cuint}, coffile::Ptr{Cuint}, vxdrev::Ptr{Cuint}, vxdver::Ptr{Cuint}, dllrev::Ptr{Cuint}, dllver::Ptr{Cuint})::Cuint
 end
 
 """
@@ -1813,11 +1787,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetSpoolProgress(at_32 * index);
+unsigned int WINAPI GetSpoolProgress(long * index);
 ```
 """
 function GetSpoolProgress(index)
-    @ccall libandor.GetSpoolProgress(index::Ptr{Cint})::Cuint
+    @ccall libandor2.GetSpoolProgress(index::Ptr{Clong})::Cuint
 end
 
 """
@@ -1825,11 +1799,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetStartUpTime(float * time);
+unsigned int WINAPI GetStartUpTime(float * time);
 ```
 """
 function GetStartUpTime(time)
-    @ccall libandor.GetStartUpTime(time::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetStartUpTime(time::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -1837,11 +1811,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetStatus(int * status);
+unsigned int WINAPI GetStatus(int * status);
 ```
 """
 function GetStatus(status)
-    @ccall libandor.GetStatus(status::Ptr{Cint})::Cuint
+    @ccall libandor2.GetStatus(status::Ptr{Cint})::Cuint
 end
 
 """
@@ -1849,11 +1823,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetTECStatus(int * piFlag);
+unsigned int WINAPI GetTECStatus(int * piFlag);
 ```
 """
 function GetTECStatus(piFlag)
-    @ccall libandor.GetTECStatus(piFlag::Ptr{Cint})::Cuint
+    @ccall libandor2.GetTECStatus(piFlag::Ptr{Cint})::Cuint
 end
 
 """
@@ -1861,11 +1835,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetTemperature(int * temperature);
+unsigned int WINAPI GetTemperature(int * temperature);
 ```
 """
 function GetTemperature(temperature)
-    @ccall libandor.GetTemperature(temperature::Ptr{Cint})::Cuint
+    @ccall libandor2.GetTemperature(temperature::Ptr{Cint})::Cuint
 end
 
 """
@@ -1873,11 +1847,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetTemperatureF(float * temperature);
+unsigned int WINAPI GetTemperatureF(float * temperature);
 ```
 """
 function GetTemperatureF(temperature)
-    @ccall libandor.GetTemperatureF(temperature::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetTemperatureF(temperature::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -1885,11 +1859,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetTemperatureRange(int * mintemp, int * maxtemp);
+unsigned int WINAPI GetTemperatureRange(int * mintemp, int * maxtemp);
 ```
 """
 function GetTemperatureRange(mintemp, maxtemp)
-    @ccall libandor.GetTemperatureRange(mintemp::Ptr{Cint}, maxtemp::Ptr{Cint})::Cuint
+    @ccall libandor2.GetTemperatureRange(mintemp::Ptr{Cint}, maxtemp::Ptr{Cint})::Cuint
 end
 
 """
@@ -1897,11 +1871,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetTemperaturePrecision(int * precision);
+unsigned int WINAPI GetTemperaturePrecision(int * precision);
 ```
 """
 function GetTemperaturePrecision(precision)
-    @ccall libandor.GetTemperaturePrecision(precision::Ptr{Cint})::Cuint
+    @ccall libandor2.GetTemperaturePrecision(precision::Ptr{Cint})::Cuint
 end
 
 """
@@ -1909,11 +1883,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetTemperatureStatus(float * SensorTemp, float * TargetTemp, float * AmbientTemp, float * CoolerVolts);
+unsigned int WINAPI GetTemperatureStatus(float * SensorTemp, float * TargetTemp, float * AmbientTemp, float * CoolerVolts);
 ```
 """
 function GetTemperatureStatus(SensorTemp, TargetTemp, AmbientTemp, CoolerVolts)
-    @ccall libandor.GetTemperatureStatus(SensorTemp::Ptr{Cfloat}, TargetTemp::Ptr{Cfloat}, AmbientTemp::Ptr{Cfloat}, CoolerVolts::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetTemperatureStatus(SensorTemp::Ptr{Cfloat}, TargetTemp::Ptr{Cfloat}, AmbientTemp::Ptr{Cfloat}, CoolerVolts::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -1921,11 +1895,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetTotalNumberImagesAcquired(at_32 * index);
+unsigned int WINAPI GetTotalNumberImagesAcquired(long * index);
 ```
 """
 function GetTotalNumberImagesAcquired(index)
-    @ccall libandor.GetTotalNumberImagesAcquired(index::Ptr{Cint})::Cuint
+    @ccall libandor2.GetTotalNumberImagesAcquired(index::Ptr{Clong})::Cuint
 end
 
 """
@@ -1933,11 +1907,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetIODirection(int index, int * iDirection);
+unsigned int WINAPI GetIODirection(int index, int * iDirection);
 ```
 """
 function GetIODirection(index, iDirection)
-    @ccall libandor.GetIODirection(index::Cint, iDirection::Ptr{Cint})::Cuint
+    @ccall libandor2.GetIODirection(index::Cint, iDirection::Ptr{Cint})::Cuint
 end
 
 """
@@ -1945,11 +1919,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetIOLevel(int index, int * iLevel);
+unsigned int WINAPI GetIOLevel(int index, int * iLevel);
 ```
 """
 function GetIOLevel(index, iLevel)
-    @ccall libandor.GetIOLevel(index::Cint, iLevel::Ptr{Cint})::Cuint
+    @ccall libandor2.GetIOLevel(index::Cint, iLevel::Ptr{Cint})::Cuint
 end
 
 """
@@ -1957,11 +1931,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetUSBDeviceDetails(unsigned short * VendorID, unsigned short * ProductID, unsigned short * FirmwareVersion, unsigned short * SpecificationNumber);
+unsigned int WINAPI GetUSBDeviceDetails(WORD * VendorID, WORD * ProductID, WORD * FirmwareVersion, WORD * SpecificationNumber);
 ```
 """
 function GetUSBDeviceDetails(VendorID, ProductID, FirmwareVersion, SpecificationNumber)
-    @ccall libandor.GetUSBDeviceDetails(VendorID::Ptr{Cushort}, ProductID::Ptr{Cushort}, FirmwareVersion::Ptr{Cushort}, SpecificationNumber::Ptr{Cushort})::Cuint
+    @ccall libandor2.GetUSBDeviceDetails(VendorID::Ptr{WORD}, ProductID::Ptr{WORD}, FirmwareVersion::Ptr{WORD}, SpecificationNumber::Ptr{WORD})::Cuint
 end
 
 """
@@ -1969,11 +1943,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetVersionInfo(AT_VersionInfoId arr, char * szVersionInfo, at_u32 ui32BufferLen);
+unsigned int WINAPI GetVersionInfo(AT_VersionInfoId arr, char * szVersionInfo, at_u32 ui32BufferLen);
 ```
 """
 function GetVersionInfo(arr, szVersionInfo, ui32BufferLen)
-    @ccall libandor.GetVersionInfo(arr::AT_VersionInfoId, szVersionInfo::Cstring, ui32BufferLen::Cuint)::Cuint
+    @ccall libandor2.GetVersionInfo(arr::AT_VersionInfoId, szVersionInfo::Cstring, ui32BufferLen::Culong)::Cuint
 end
 
 """
@@ -1981,11 +1955,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetVerticalSpeed(int index, int * speed);
+unsigned int WINAPI GetVerticalSpeed(int index, int * speed);
 ```
 """
 function GetVerticalSpeed(index, speed)
-    @ccall libandor.GetVerticalSpeed(index::Cint, speed::Ptr{Cint})::Cuint
+    @ccall libandor2.GetVerticalSpeed(index::Cint, speed::Ptr{Cint})::Cuint
 end
 
 """
@@ -1993,11 +1967,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetVirtualDMAAddress(void ** Address1, void ** Address2);
+unsigned int WINAPI GetVirtualDMAAddress(void ** Address1, void ** Address2);
 ```
 """
 function GetVirtualDMAAddress(Address1, Address2)
-    @ccall libandor.GetVirtualDMAAddress(Address1::Ptr{Ptr{Cvoid}}, Address2::Ptr{Ptr{Cvoid}})::Cuint
+    @ccall libandor2.GetVirtualDMAAddress(Address1::Ptr{Ptr{Cvoid}}, Address2::Ptr{Ptr{Cvoid}})::Cuint
 end
 
 """
@@ -2005,11 +1979,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetVSAmplitudeString(int index, char * text);
+unsigned int WINAPI GetVSAmplitudeString(int index, char * text);
 ```
 """
 function GetVSAmplitudeString(index, text)
-    @ccall libandor.GetVSAmplitudeString(index::Cint, text::Cstring)::Cuint
+    @ccall libandor2.GetVSAmplitudeString(index::Cint, text::Cstring)::Cuint
 end
 
 """
@@ -2017,11 +1991,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetVSAmplitudeFromString(char * text, int * index);
+unsigned int WINAPI GetVSAmplitudeFromString(char * text, int * index);
 ```
 """
 function GetVSAmplitudeFromString(text, index)
-    @ccall libandor.GetVSAmplitudeFromString(text::Cstring, index::Ptr{Cint})::Cuint
+    @ccall libandor2.GetVSAmplitudeFromString(text::Cstring, index::Ptr{Cint})::Cuint
 end
 
 """
@@ -2029,11 +2003,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetVSAmplitudeValue(int index, int * value);
+unsigned int WINAPI GetVSAmplitudeValue(int index, int * value);
 ```
 """
 function GetVSAmplitudeValue(index, value)
-    @ccall libandor.GetVSAmplitudeValue(index::Cint, value::Ptr{Cint})::Cuint
+    @ccall libandor2.GetVSAmplitudeValue(index::Cint, value::Ptr{Cint})::Cuint
 end
 
 """
@@ -2041,11 +2015,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetVSSpeed(int index, float * speed);
+unsigned int WINAPI GetVSSpeed(int index, float * speed);
 ```
 """
 function GetVSSpeed(index, speed)
-    @ccall libandor.GetVSSpeed(index::Cint, speed::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetVSSpeed(index::Cint, speed::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -2053,11 +2027,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GPIBReceive(int id, short address, char * text, int size);
+unsigned int WINAPI GPIBReceive(int id, short address, char * text, int size);
 ```
 """
 function GPIBReceive(id, address, text, size)
-    @ccall libandor.GPIBReceive(id::Cint, address::Cshort, text::Cstring, size::Cint)::Cuint
+    @ccall libandor2.GPIBReceive(id::Cint, address::Cshort, text::Cstring, size::Cint)::Cuint
 end
 
 """
@@ -2065,11 +2039,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GPIBSend(int id, short address, char * text);
+unsigned int WINAPI GPIBSend(int id, short address, char * text);
 ```
 """
 function GPIBSend(id, address, text)
-    @ccall libandor.GPIBSend(id::Cint, address::Cshort, text::Cstring)::Cuint
+    @ccall libandor2.GPIBSend(id::Cint, address::Cshort, text::Cstring)::Cuint
 end
 
 """
@@ -2077,11 +2051,11 @@ end
 
 ### Prototype
 ```c
-unsigned int I2CBurstRead(unsigned char i2cAddress, at_32 nBytes, unsigned char * data);
+unsigned int WINAPI I2CBurstRead(BYTE i2cAddress, long nBytes, BYTE * data);
 ```
 """
 function I2CBurstRead(i2cAddress, nBytes, data)
-    @ccall libandor.I2CBurstRead(i2cAddress::Cuchar, nBytes::Cint, data::Ptr{Cuchar})::Cuint
+    @ccall libandor2.I2CBurstRead(i2cAddress::BYTE, nBytes::Clong, data::Ptr{BYTE})::Cuint
 end
 
 """
@@ -2089,11 +2063,11 @@ end
 
 ### Prototype
 ```c
-unsigned int I2CBurstWrite(unsigned char i2cAddress, at_32 nBytes, unsigned char * data);
+unsigned int WINAPI I2CBurstWrite(BYTE i2cAddress, long nBytes, BYTE * data);
 ```
 """
 function I2CBurstWrite(i2cAddress, nBytes, data)
-    @ccall libandor.I2CBurstWrite(i2cAddress::Cuchar, nBytes::Cint, data::Ptr{Cuchar})::Cuint
+    @ccall libandor2.I2CBurstWrite(i2cAddress::BYTE, nBytes::Clong, data::Ptr{BYTE})::Cuint
 end
 
 """
@@ -2101,24 +2075,23 @@ end
 
 ### Prototype
 ```c
-unsigned int I2CRead(unsigned char deviceID, unsigned char intAddress, unsigned char * pdata);
+unsigned int WINAPI I2CRead(BYTE deviceID, BYTE intAddress, BYTE * pdata);
 ```
 """
 function I2CRead(deviceID, intAddress, pdata)
-    @ccall libandor.I2CRead(deviceID::Cuchar, intAddress::Cuchar, pdata::Ptr{Cuchar})::Cuint
+    @ccall libandor2.I2CRead(deviceID::BYTE, intAddress::BYTE, pdata::Ptr{BYTE})::Cuint
 end
 
-# no prototype is found for this function at atmcdLXd.h:319:14, please use with caution
 """
     I2CReset()
 
 ### Prototype
 ```c
-unsigned int I2CReset();
+unsigned int WINAPI I2CReset(void);
 ```
 """
 function I2CReset()
-    @ccall libandor.I2CReset()::Cuint
+    @ccall libandor2.I2CReset()::Cuint
 end
 
 """
@@ -2126,24 +2099,23 @@ end
 
 ### Prototype
 ```c
-unsigned int I2CWrite(unsigned char deviceID, unsigned char intAddress, unsigned char data);
+unsigned int WINAPI I2CWrite(BYTE deviceID, BYTE intAddress, BYTE data);
 ```
 """
 function I2CWrite(deviceID, intAddress, data)
-    @ccall libandor.I2CWrite(deviceID::Cuchar, intAddress::Cuchar, data::Cuchar)::Cuint
+    @ccall libandor2.I2CWrite(deviceID::BYTE, intAddress::BYTE, data::BYTE)::Cuint
 end
 
-# no prototype is found for this function at atmcdLXd.h:321:14, please use with caution
 """
     IdAndorDll()
 
 ### Prototype
 ```c
-unsigned int IdAndorDll();
+unsigned int WINAPI IdAndorDll(void);
 ```
 """
 function IdAndorDll()
-    @ccall libandor.IdAndorDll()::Cuint
+    @ccall libandor2.IdAndorDll()::Cuint
 end
 
 """
@@ -2151,11 +2123,11 @@ end
 
 ### Prototype
 ```c
-unsigned int InAuxPort(int port, int * state);
+unsigned int WINAPI InAuxPort(int port, int * state);
 ```
 """
 function InAuxPort(port, state)
-    @ccall libandor.InAuxPort(port::Cint, state::Ptr{Cint})::Cuint
+    @ccall libandor2.InAuxPort(port::Cint, state::Ptr{Cint})::Cuint
 end
 
 """
@@ -2163,11 +2135,11 @@ end
 
 ### Prototype
 ```c
-unsigned int Initialize(char * dir);
+unsigned int WINAPI Initialize(char * dir);
 ```
 """
 function Initialize(dir)
-    @ccall libandor.Initialize(dir::Cstring)::Cuint
+    @ccall libandor2.Initialize(dir::Cstring)::Cuint
 end
 
 """
@@ -2175,11 +2147,11 @@ end
 
 ### Prototype
 ```c
-unsigned int InitializeDevice(char * dir);
+unsigned int WINAPI InitializeDevice(char * dir);
 ```
 """
 function InitializeDevice(dir)
-    @ccall libandor.InitializeDevice(dir::Cstring)::Cuint
+    @ccall libandor2.InitializeDevice(dir::Cstring)::Cuint
 end
 
 """
@@ -2187,11 +2159,11 @@ end
 
 ### Prototype
 ```c
-unsigned int IsAmplifierAvailable(int iamp);
+unsigned int WINAPI IsAmplifierAvailable(int iamp);
 ```
 """
 function IsAmplifierAvailable(iamp)
-    @ccall libandor.IsAmplifierAvailable(iamp::Cint)::Cuint
+    @ccall libandor2.IsAmplifierAvailable(iamp::Cint)::Cuint
 end
 
 """
@@ -2199,11 +2171,11 @@ end
 
 ### Prototype
 ```c
-unsigned int IsCoolerOn(int * iCoolerStatus);
+unsigned int WINAPI IsCoolerOn(int * iCoolerStatus);
 ```
 """
 function IsCoolerOn(iCoolerStatus)
-    @ccall libandor.IsCoolerOn(iCoolerStatus::Ptr{Cint})::Cuint
+    @ccall libandor2.IsCoolerOn(iCoolerStatus::Ptr{Cint})::Cuint
 end
 
 """
@@ -2211,11 +2183,11 @@ end
 
 ### Prototype
 ```c
-unsigned int IsCountConvertModeAvailable(int mode);
+unsigned int WINAPI IsCountConvertModeAvailable(int mode);
 ```
 """
 function IsCountConvertModeAvailable(mode)
-    @ccall libandor.IsCountConvertModeAvailable(mode::Cint)::Cuint
+    @ccall libandor2.IsCountConvertModeAvailable(mode::Cint)::Cuint
 end
 
 """
@@ -2223,11 +2195,11 @@ end
 
 ### Prototype
 ```c
-unsigned int IsInternalMechanicalShutter(int * InternalShutter);
+unsigned int WINAPI IsInternalMechanicalShutter(int * InternalShutter);
 ```
 """
 function IsInternalMechanicalShutter(InternalShutter)
-    @ccall libandor.IsInternalMechanicalShutter(InternalShutter::Ptr{Cint})::Cuint
+    @ccall libandor2.IsInternalMechanicalShutter(InternalShutter::Ptr{Cint})::Cuint
 end
 
 """
@@ -2235,11 +2207,11 @@ end
 
 ### Prototype
 ```c
-unsigned int IsPreAmpGainAvailable(int channel, int amplifier, int index, int pa, int * status);
+unsigned int WINAPI IsPreAmpGainAvailable(int channel, int amplifier, int index, int pa, int * status);
 ```
 """
 function IsPreAmpGainAvailable(channel, amplifier, index, pa, status)
-    @ccall libandor.IsPreAmpGainAvailable(channel::Cint, amplifier::Cint, index::Cint, pa::Cint, status::Ptr{Cint})::Cuint
+    @ccall libandor2.IsPreAmpGainAvailable(channel::Cint, amplifier::Cint, index::Cint, pa::Cint, status::Ptr{Cint})::Cuint
 end
 
 """
@@ -2247,11 +2219,11 @@ end
 
 ### Prototype
 ```c
-unsigned int IsReadoutFlippedByAmplifier(int iAmplifier, int * iFlipped);
+unsigned int WINAPI IsReadoutFlippedByAmplifier(int iAmplifier, int * iFlipped);
 ```
 """
 function IsReadoutFlippedByAmplifier(iAmplifier, iFlipped)
-    @ccall libandor.IsReadoutFlippedByAmplifier(iAmplifier::Cint, iFlipped::Ptr{Cint})::Cuint
+    @ccall libandor2.IsReadoutFlippedByAmplifier(iAmplifier::Cint, iFlipped::Ptr{Cint})::Cuint
 end
 
 """
@@ -2259,11 +2231,11 @@ end
 
 ### Prototype
 ```c
-unsigned int IsTriggerModeAvailable(int iTriggerMode);
+unsigned int WINAPI IsTriggerModeAvailable(int iTriggerMode);
 ```
 """
 function IsTriggerModeAvailable(iTriggerMode)
-    @ccall libandor.IsTriggerModeAvailable(iTriggerMode::Cint)::Cuint
+    @ccall libandor2.IsTriggerModeAvailable(iTriggerMode::Cint)::Cuint
 end
 
 """
@@ -2271,11 +2243,11 @@ end
 
 ### Prototype
 ```c
-unsigned int Merge(const at_32 * arr, at_32 nOrder, at_32 nPoint, at_32 nPixel, float * coeff, at_32 fit, at_32 hbin, at_32 * output, float * start, float * step_Renamed);
+unsigned int WINAPI Merge(const at_32 * arr, long nOrder, long nPoint, long nPixel, float * coeff, long fit, long hbin, at_32 * output, float * start, float * step_Renamed);
 ```
 """
 function Merge(arr, nOrder, nPoint, nPixel, coeff, fit, hbin, output, start, step_Renamed)
-    @ccall libandor.Merge(arr::Ptr{Cint}, nOrder::Cint, nPoint::Cint, nPixel::Cint, coeff::Ptr{Cfloat}, fit::Cint, hbin::Cint, output::Ptr{Cint}, start::Ptr{Cfloat}, step_Renamed::Ptr{Cfloat})::Cuint
+    @ccall libandor2.Merge(arr::Ptr{Clong}, nOrder::Clong, nPoint::Clong, nPixel::Clong, coeff::Ptr{Cfloat}, fit::Clong, hbin::Clong, output::Ptr{Clong}, start::Ptr{Cfloat}, step_Renamed::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -2283,24 +2255,23 @@ end
 
 ### Prototype
 ```c
-unsigned int OutAuxPort(int port, int state);
+unsigned int WINAPI OutAuxPort(int port, int state);
 ```
 """
 function OutAuxPort(port, state)
-    @ccall libandor.OutAuxPort(port::Cint, state::Cint)::Cuint
+    @ccall libandor2.OutAuxPort(port::Cint, state::Cint)::Cuint
 end
 
-# no prototype is found for this function at atmcdLXd.h:334:14, please use with caution
 """
     PrepareAcquisition()
 
 ### Prototype
 ```c
-unsigned int PrepareAcquisition();
+unsigned int WINAPI PrepareAcquisition(void);
 ```
 """
 function PrepareAcquisition()
-    @ccall libandor.PrepareAcquisition()::Cuint
+    @ccall libandor2.PrepareAcquisition()::Cuint
 end
 
 """
@@ -2308,23 +2279,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SaveAsBmp(const char * path, const char * palette, at_32 ymin, at_32 ymax);
+unsigned int WINAPI SaveAsBmp(const char * path, const char * palette, long ymin, long ymax);
 ```
 """
 function SaveAsBmp(path, palette, ymin, ymax)
-    @ccall libandor.SaveAsBmp(path::Cstring, palette::Cstring, ymin::Cint, ymax::Cint)::Cuint
-end
-
-"""
-    SaveAsCalibratedSif(path, x_data_type, x_unit, x_cal, rayleighWavelength)
-
-### Prototype
-```c
-unsigned int SaveAsCalibratedSif(char * path, int x_data_type, int x_unit, float * x_cal, float rayleighWavelength);
-```
-"""
-function SaveAsCalibratedSif(path, x_data_type, x_unit, x_cal, rayleighWavelength)
-    @ccall libandor.SaveAsCalibratedSif(path::Cstring, x_data_type::Cint, x_unit::Cint, x_cal::Ptr{Cfloat}, rayleighWavelength::Cfloat)::Cuint
+    @ccall libandor2.SaveAsBmp(path::Cstring, palette::Cstring, ymin::Clong, ymax::Clong)::Cuint
 end
 
 """
@@ -2332,11 +2291,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SaveAsCommentedSif(char * path, char * comment);
+unsigned int WINAPI SaveAsCommentedSif(char * path, char * comment);
 ```
 """
 function SaveAsCommentedSif(path, comment)
-    @ccall libandor.SaveAsCommentedSif(path::Cstring, comment::Cstring)::Cuint
+    @ccall libandor2.SaveAsCommentedSif(path::Cstring, comment::Cstring)::Cuint
 end
 
 """
@@ -2344,11 +2303,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SaveAsEDF(char * szPath, int iMode);
+unsigned int WINAPI SaveAsEDF(char * szPath, int iMode);
 ```
 """
 function SaveAsEDF(szPath, iMode)
-    @ccall libandor.SaveAsEDF(szPath::Cstring, iMode::Cint)::Cuint
+    @ccall libandor2.SaveAsEDF(szPath::Cstring, iMode::Cint)::Cuint
 end
 
 """
@@ -2356,11 +2315,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SaveAsFITS(char * szFileTitle, int typ);
+unsigned int WINAPI SaveAsFITS(char * szFileTitle, int typ);
 ```
 """
 function SaveAsFITS(szFileTitle, typ)
-    @ccall libandor.SaveAsFITS(szFileTitle::Cstring, typ::Cint)::Cuint
+    @ccall libandor2.SaveAsFITS(szFileTitle::Cstring, typ::Cint)::Cuint
 end
 
 """
@@ -2368,11 +2327,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SaveAsRaw(char * szFileTitle, int typ);
+unsigned int WINAPI SaveAsRaw(char * szFileTitle, int typ);
 ```
 """
 function SaveAsRaw(szFileTitle, typ)
-    @ccall libandor.SaveAsRaw(szFileTitle::Cstring, typ::Cint)::Cuint
+    @ccall libandor2.SaveAsRaw(szFileTitle::Cstring, typ::Cint)::Cuint
 end
 
 """
@@ -2380,11 +2339,23 @@ end
 
 ### Prototype
 ```c
-unsigned int SaveAsSif(char * path);
+unsigned int WINAPI SaveAsSif(char * path);
 ```
 """
 function SaveAsSif(path)
-    @ccall libandor.SaveAsSif(path::Cstring)::Cuint
+    @ccall libandor2.SaveAsSif(path::Cstring)::Cuint
+end
+
+"""
+    SaveAsSPC(path)
+
+### Prototype
+```c
+unsigned int WINAPI SaveAsSPC(char * path);
+```
+"""
+function SaveAsSPC(path)
+    @ccall libandor2.SaveAsSPC(path::Cstring)::Cuint
 end
 
 """
@@ -2392,11 +2363,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SaveAsTiff(char * path, char * palette, int position, int typ);
+unsigned int WINAPI SaveAsTiff(char * path, char * palette, int position, int typ);
 ```
 """
 function SaveAsTiff(path, palette, position, typ)
-    @ccall libandor.SaveAsTiff(path::Cstring, palette::Cstring, position::Cint, typ::Cint)::Cuint
+    @ccall libandor2.SaveAsTiff(path::Cstring, palette::Cstring, position::Cint, typ::Cint)::Cuint
 end
 
 """
@@ -2404,11 +2375,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SaveAsTiffEx(char * path, char * palette, int position, int typ, int mode);
+unsigned int WINAPI SaveAsTiffEx(char * path, char * palette, int position, int typ, int mode);
 ```
 """
 function SaveAsTiffEx(path, palette, position, typ, mode)
-    @ccall libandor.SaveAsTiffEx(path::Cstring, palette::Cstring, position::Cint, typ::Cint, mode::Cint)::Cuint
+    @ccall libandor2.SaveAsTiffEx(path::Cstring, palette::Cstring, position::Cint, typ::Cint, mode::Cint)::Cuint
 end
 
 """
@@ -2416,11 +2387,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SaveEEPROMToFile(char * cFileName);
+unsigned int WINAPI SaveEEPROMToFile(char * cFileName);
 ```
 """
 function SaveEEPROMToFile(cFileName)
-    @ccall libandor.SaveEEPROMToFile(cFileName::Cstring)::Cuint
+    @ccall libandor2.SaveEEPROMToFile(cFileName::Cstring)::Cuint
 end
 
 """
@@ -2428,11 +2399,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SaveToClipBoard(char * palette);
+unsigned int WINAPI SaveToClipBoard(char * palette);
 ```
 """
 function SaveToClipBoard(palette)
-    @ccall libandor.SaveToClipBoard(palette::Cstring)::Cuint
+    @ccall libandor2.SaveToClipBoard(palette::Cstring)::Cuint
 end
 
 """
@@ -2440,24 +2411,23 @@ end
 
 ### Prototype
 ```c
-unsigned int SelectDevice(int devNum);
+unsigned int WINAPI SelectDevice(int devNum);
 ```
 """
 function SelectDevice(devNum)
-    @ccall libandor.SelectDevice(devNum::Cint)::Cuint
+    @ccall libandor2.SelectDevice(devNum::Cint)::Cuint
 end
 
-# no prototype is found for this function at atmcdLXd.h:348:14, please use with caution
 """
     SendSoftwareTrigger()
 
 ### Prototype
 ```c
-unsigned int SendSoftwareTrigger();
+unsigned int WINAPI SendSoftwareTrigger(void);
 ```
 """
 function SendSoftwareTrigger()
-    @ccall libandor.SendSoftwareTrigger()::Cuint
+    @ccall libandor2.SendSoftwareTrigger()::Cuint
 end
 
 """
@@ -2465,11 +2435,23 @@ end
 
 ### Prototype
 ```c
-unsigned int SetAccumulationCycleTime(float time);
+unsigned int WINAPI SetAccumulationCycleTime(float time);
 ```
 """
 function SetAccumulationCycleTime(time)
-    @ccall libandor.SetAccumulationCycleTime(time::Cfloat)::Cuint
+    @ccall libandor2.SetAccumulationCycleTime(time::Cfloat)::Cuint
+end
+
+"""
+    SetAcqStatusEvent(statusEvent)
+
+### Prototype
+```c
+unsigned int WINAPI SetAcqStatusEvent(HANDLE statusEvent);
+```
+"""
+function SetAcqStatusEvent(statusEvent)
+    @ccall libandor2.SetAcqStatusEvent(statusEvent::HANDLE)::Cuint
 end
 
 """
@@ -2477,11 +2459,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetAcquisitionMode(int mode);
+unsigned int WINAPI SetAcquisitionMode(int mode);
 ```
 """
 function SetAcquisitionMode(mode)
-    @ccall libandor.SetAcquisitionMode(mode::Cint)::Cuint
+    @ccall libandor2.SetAcquisitionMode(mode::Cint)::Cuint
 end
 
 """
@@ -2489,11 +2471,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetSensorPortMode(int mode);
+unsigned int WINAPI SetSensorPortMode(int mode);
 ```
 """
 function SetSensorPortMode(mode)
-    @ccall libandor.SetSensorPortMode(mode::Cint)::Cuint
+    @ccall libandor2.SetSensorPortMode(mode::Cint)::Cuint
 end
 
 """
@@ -2501,35 +2483,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SelectSensorPort(int port);
+unsigned int WINAPI SelectSensorPort(int port);
 ```
 """
 function SelectSensorPort(port)
-    @ccall libandor.SelectSensorPort(port::Cint)::Cuint
-end
-
-"""
-    SetSizeOfCircularBufferMegaBytes(sizeMB)
-
-### Prototype
-```c
-unsigned int SetSizeOfCircularBufferMegaBytes(at_u32 sizeMB);
-```
-"""
-function SetSizeOfCircularBufferMegaBytes(sizeMB)
-    @ccall libandor.SetSizeOfCircularBufferMegaBytes(sizeMB::Cuint)::Cuint
-end
-
-"""
-    SelectDualSensorPort(port)
-
-### Prototype
-```c
-unsigned int SelectDualSensorPort(int port);
-```
-"""
-function SelectDualSensorPort(port)
-    @ccall libandor.SelectDualSensorPort(port::Cint)::Cuint
+    @ccall libandor2.SelectSensorPort(port::Cint)::Cuint
 end
 
 """
@@ -2537,11 +2495,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetAcquisitionType(int typ);
+unsigned int WINAPI SetAcquisitionType(int typ);
 ```
 """
 function SetAcquisitionType(typ)
-    @ccall libandor.SetAcquisitionType(typ::Cint)::Cuint
+    @ccall libandor2.SetAcquisitionType(typ::Cint)::Cuint
 end
 
 """
@@ -2549,11 +2507,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetADChannel(int channel);
+unsigned int WINAPI SetADChannel(int channel);
 ```
 """
 function SetADChannel(channel)
-    @ccall libandor.SetADChannel(channel::Cint)::Cuint
+    @ccall libandor2.SetADChannel(channel::Cint)::Cuint
 end
 
 """
@@ -2561,11 +2519,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetAdvancedTriggerModeState(int iState);
+unsigned int WINAPI SetAdvancedTriggerModeState(int iState);
 ```
 """
 function SetAdvancedTriggerModeState(iState)
-    @ccall libandor.SetAdvancedTriggerModeState(iState::Cint)::Cuint
+    @ccall libandor2.SetAdvancedTriggerModeState(iState::Cint)::Cuint
 end
 
 """
@@ -2573,11 +2531,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetBackground(at_32 * arr, at_u32 size);
+unsigned int WINAPI SetBackground(at_32 * arr, unsigned long size);
 ```
 """
 function SetBackground(arr, size)
-    @ccall libandor.SetBackground(arr::Ptr{Cint}, size::Cuint)::Cuint
+    @ccall libandor2.SetBackground(arr::Ptr{Clong}, size::Culong)::Cuint
 end
 
 """
@@ -2585,11 +2543,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetBaselineClamp(int state);
+unsigned int WINAPI SetBaselineClamp(int state);
 ```
 """
 function SetBaselineClamp(state)
-    @ccall libandor.SetBaselineClamp(state::Cint)::Cuint
+    @ccall libandor2.SetBaselineClamp(state::Cint)::Cuint
 end
 
 """
@@ -2597,23 +2555,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetBaselineOffset(int offset);
+unsigned int WINAPI SetBaselineOffset(int offset);
 ```
 """
 function SetBaselineOffset(offset)
-    @ccall libandor.SetBaselineOffset(offset::Cint)::Cuint
-end
-
-"""
-    SetBitsPerPixel(state)
-
-### Prototype
-```c
-unsigned int SetBitsPerPixel(int state);
-```
-"""
-function SetBitsPerPixel(state)
-    @ccall libandor.SetBitsPerPixel(state::Cint)::Cuint
+    @ccall libandor2.SetBaselineOffset(offset::Cint)::Cuint
 end
 
 """
@@ -2621,11 +2567,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetCameraLinkMode(int mode);
+unsigned int WINAPI SetCameraLinkMode(int mode);
 ```
 """
 function SetCameraLinkMode(mode)
-    @ccall libandor.SetCameraLinkMode(mode::Cint)::Cuint
+    @ccall libandor2.SetCameraLinkMode(mode::Cint)::Cuint
 end
 
 """
@@ -2633,11 +2579,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetCameraStatusEnable(unsigned long Enable);
+unsigned int WINAPI SetCameraStatusEnable(DWORD Enable);
 ```
 """
 function SetCameraStatusEnable(Enable)
-    @ccall libandor.SetCameraStatusEnable(Enable::Culong)::Cuint
+    @ccall libandor2.SetCameraStatusEnable(Enable::DWORD)::Cuint
 end
 
 """
@@ -2645,11 +2591,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetChargeShifting(unsigned int NumberRows, unsigned int NumberRepeats);
+unsigned int WINAPI SetChargeShifting(unsigned int NumberRows, unsigned int NumberRepeats);
 ```
 """
 function SetChargeShifting(NumberRows, NumberRepeats)
-    @ccall libandor.SetChargeShifting(NumberRows::Cuint, NumberRepeats::Cuint)::Cuint
+    @ccall libandor2.SetChargeShifting(NumberRows::Cuint, NumberRepeats::Cuint)::Cuint
 end
 
 """
@@ -2657,11 +2603,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetComplexImage(int numAreas, int * areas);
+unsigned int WINAPI SetComplexImage(int numAreas, int * areas);
 ```
 """
 function SetComplexImage(numAreas, areas)
-    @ccall libandor.SetComplexImage(numAreas::Cint, areas::Ptr{Cint})::Cuint
+    @ccall libandor2.SetComplexImage(numAreas::Cint, areas::Ptr{Cint})::Cuint
 end
 
 """
@@ -2669,11 +2615,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetCoolerMode(int mode);
+unsigned int WINAPI SetCoolerMode(int mode);
 ```
 """
 function SetCoolerMode(mode)
-    @ccall libandor.SetCoolerMode(mode::Cint)::Cuint
+    @ccall libandor2.SetCoolerMode(mode::Cint)::Cuint
 end
 
 """
@@ -2681,11 +2627,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetCountConvertMode(int Mode);
+unsigned int WINAPI SetCountConvertMode(int Mode);
 ```
 """
 function SetCountConvertMode(Mode)
-    @ccall libandor.SetCountConvertMode(Mode::Cint)::Cuint
+    @ccall libandor2.SetCountConvertMode(Mode::Cint)::Cuint
 end
 
 """
@@ -2693,11 +2639,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetCountConvertWavelength(float wavelength);
+unsigned int WINAPI SetCountConvertWavelength(float wavelength);
 ```
 """
 function SetCountConvertWavelength(wavelength)
-    @ccall libandor.SetCountConvertWavelength(wavelength::Cfloat)::Cuint
+    @ccall libandor2.SetCountConvertWavelength(wavelength::Cfloat)::Cuint
 end
 
 """
@@ -2705,11 +2651,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetCropMode(int active, int cropHeight, int reserved);
+unsigned int WINAPI SetCropMode(int active, int cropHeight, int reserved);
 ```
 """
 function SetCropMode(active, cropHeight, reserved)
-    @ccall libandor.SetCropMode(active::Cint, cropHeight::Cint, reserved::Cint)::Cuint
+    @ccall libandor2.SetCropMode(active::Cint, cropHeight::Cint, reserved::Cint)::Cuint
 end
 
 """
@@ -2717,11 +2663,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetCurrentCamera(at_32 cameraHandle);
+unsigned int WINAPI SetCurrentCamera(long cameraHandle);
 ```
 """
 function SetCurrentCamera(cameraHandle)
-    @ccall libandor.SetCurrentCamera(cameraHandle::Cint)::Cuint
+    @ccall libandor2.SetCurrentCamera(cameraHandle::Clong)::Cuint
 end
 
 """
@@ -2729,11 +2675,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetCustomTrackHBin(int bin);
+unsigned int WINAPI SetCustomTrackHBin(int bin);
 ```
 """
 function SetCustomTrackHBin(bin)
-    @ccall libandor.SetCustomTrackHBin(bin::Cint)::Cuint
+    @ccall libandor2.SetCustomTrackHBin(bin::Cint)::Cuint
 end
 
 """
@@ -2741,11 +2687,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDataType(int typ);
+unsigned int WINAPI SetDataType(int typ);
 ```
 """
 function SetDataType(typ)
-    @ccall libandor.SetDataType(typ::Cint)::Cuint
+    @ccall libandor2.SetDataType(typ::Cint)::Cuint
 end
 
 """
@@ -2753,11 +2699,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDACOutput(int iOption, int iResolution, int iValue);
+unsigned int WINAPI SetDACOutput(int iOption, int iResolution, int iValue);
 ```
 """
 function SetDACOutput(iOption, iResolution, iValue)
-    @ccall libandor.SetDACOutput(iOption::Cint, iResolution::Cint, iValue::Cint)::Cuint
+    @ccall libandor2.SetDACOutput(iOption::Cint, iResolution::Cint, iValue::Cint)::Cuint
 end
 
 """
@@ -2765,11 +2711,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDACOutputScale(int iScale);
+unsigned int WINAPI SetDACOutputScale(int iScale);
 ```
 """
 function SetDACOutputScale(iScale)
-    @ccall libandor.SetDACOutputScale(iScale::Cint)::Cuint
+    @ccall libandor2.SetDACOutputScale(iScale::Cint)::Cuint
 end
 
 """
@@ -2777,11 +2723,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGAddress(unsigned char t0, unsigned char t1, unsigned char t2, unsigned char t3, unsigned char address);
+unsigned int WINAPI SetDDGAddress(BYTE t0, BYTE t1, BYTE t2, BYTE t3, BYTE address);
 ```
 """
 function SetDDGAddress(t0, t1, t2, t3, address)
-    @ccall libandor.SetDDGAddress(t0::Cuchar, t1::Cuchar, t2::Cuchar, t3::Cuchar, address::Cuchar)::Cuint
+    @ccall libandor2.SetDDGAddress(t0::BYTE, t1::BYTE, t2::BYTE, t3::BYTE, address::BYTE)::Cuint
 end
 
 """
@@ -2789,11 +2735,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGExternalOutputEnabled(at_u32 uiIndex, at_u32 uiEnabled);
+unsigned int WINAPI SetDDGExternalOutputEnabled(at_u32 uiIndex, at_u32 uiEnabled);
 ```
 """
 function SetDDGExternalOutputEnabled(uiIndex, uiEnabled)
-    @ccall libandor.SetDDGExternalOutputEnabled(uiIndex::Cuint, uiEnabled::Cuint)::Cuint
+    @ccall libandor2.SetDDGExternalOutputEnabled(uiIndex::Culong, uiEnabled::Culong)::Cuint
 end
 
 """
@@ -2801,11 +2747,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGExternalOutputPolarity(at_u32 uiIndex, at_u32 uiPolarity);
+unsigned int WINAPI SetDDGExternalOutputPolarity(at_u32 uiIndex, at_u32 uiPolarity);
 ```
 """
 function SetDDGExternalOutputPolarity(uiIndex, uiPolarity)
-    @ccall libandor.SetDDGExternalOutputPolarity(uiIndex::Cuint, uiPolarity::Cuint)::Cuint
+    @ccall libandor2.SetDDGExternalOutputPolarity(uiIndex::Culong, uiPolarity::Culong)::Cuint
 end
 
 """
@@ -2813,11 +2759,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGExternalOutputStepEnabled(at_u32 uiIndex, at_u32 uiEnabled);
+unsigned int WINAPI SetDDGExternalOutputStepEnabled(at_u32 uiIndex, at_u32 uiEnabled);
 ```
 """
 function SetDDGExternalOutputStepEnabled(uiIndex, uiEnabled)
-    @ccall libandor.SetDDGExternalOutputStepEnabled(uiIndex::Cuint, uiEnabled::Cuint)::Cuint
+    @ccall libandor2.SetDDGExternalOutputStepEnabled(uiIndex::Culong, uiEnabled::Culong)::Cuint
 end
 
 """
@@ -2825,11 +2771,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGExternalOutputTime(at_u32 uiIndex, at_u64 uiDelay, at_u64 uiWidth);
+unsigned int WINAPI SetDDGExternalOutputTime(at_u32 uiIndex, at_u64 uiDelay, at_u64 uiWidth);
 ```
 """
 function SetDDGExternalOutputTime(uiIndex, uiDelay, uiWidth)
-    @ccall libandor.SetDDGExternalOutputTime(uiIndex::Cuint, uiDelay::Culonglong, uiWidth::Culonglong)::Cuint
+    @ccall libandor2.SetDDGExternalOutputTime(uiIndex::Culong, uiDelay::Culonglong, uiWidth::Culonglong)::Cuint
 end
 
 """
@@ -2837,11 +2783,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGGain(int gain);
+unsigned int WINAPI SetDDGGain(int gain);
 ```
 """
 function SetDDGGain(gain)
-    @ccall libandor.SetDDGGain(gain::Cint)::Cuint
+    @ccall libandor2.SetDDGGain(gain::Cint)::Cuint
 end
 
 """
@@ -2849,11 +2795,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGGateStep(double step_Renamed);
+unsigned int WINAPI SetDDGGateStep(double step_Renamed);
 ```
 """
 function SetDDGGateStep(step_Renamed)
-    @ccall libandor.SetDDGGateStep(step_Renamed::Cdouble)::Cuint
+    @ccall libandor2.SetDDGGateStep(step_Renamed::Cdouble)::Cuint
 end
 
 """
@@ -2861,11 +2807,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGGateTime(at_u64 uiDelay, at_u64 uiWidth);
+unsigned int WINAPI SetDDGGateTime(at_u64 uiDelay, at_u64 uiWidth);
 ```
 """
 function SetDDGGateTime(uiDelay, uiWidth)
-    @ccall libandor.SetDDGGateTime(uiDelay::Culonglong, uiWidth::Culonglong)::Cuint
+    @ccall libandor2.SetDDGGateTime(uiDelay::Culonglong, uiWidth::Culonglong)::Cuint
 end
 
 """
@@ -2873,11 +2819,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGInsertionDelay(int state);
+unsigned int WINAPI SetDDGInsertionDelay(int state);
 ```
 """
 function SetDDGInsertionDelay(state)
-    @ccall libandor.SetDDGInsertionDelay(state::Cint)::Cuint
+    @ccall libandor2.SetDDGInsertionDelay(state::Cint)::Cuint
 end
 
 """
@@ -2885,11 +2831,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGIntelligate(int state);
+unsigned int WINAPI SetDDGIntelligate(int state);
 ```
 """
 function SetDDGIntelligate(state)
-    @ccall libandor.SetDDGIntelligate(state::Cint)::Cuint
+    @ccall libandor2.SetDDGIntelligate(state::Cint)::Cuint
 end
 
 """
@@ -2897,11 +2843,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGIOC(int state);
+unsigned int WINAPI SetDDGIOC(int state);
 ```
 """
 function SetDDGIOC(state)
-    @ccall libandor.SetDDGIOC(state::Cint)::Cuint
+    @ccall libandor2.SetDDGIOC(state::Cint)::Cuint
 end
 
 """
@@ -2909,11 +2855,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGIOCFrequency(double frequency);
+unsigned int WINAPI SetDDGIOCFrequency(double frequency);
 ```
 """
 function SetDDGIOCFrequency(frequency)
-    @ccall libandor.SetDDGIOCFrequency(frequency::Cdouble)::Cuint
+    @ccall libandor2.SetDDGIOCFrequency(frequency::Cdouble)::Cuint
 end
 
 """
@@ -2921,11 +2867,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGIOCNumber(unsigned long numberPulses);
+unsigned int WINAPI SetDDGIOCNumber(unsigned long numberPulses);
 ```
 """
 function SetDDGIOCNumber(numberPulses)
-    @ccall libandor.SetDDGIOCNumber(numberPulses::Culong)::Cuint
+    @ccall libandor2.SetDDGIOCNumber(numberPulses::Culong)::Cuint
 end
 
 """
@@ -2933,11 +2879,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGIOCPeriod(at_u64 period);
+unsigned int WINAPI SetDDGIOCPeriod(at_u64 period);
 ```
 """
 function SetDDGIOCPeriod(period)
-    @ccall libandor.SetDDGIOCPeriod(period::Culonglong)::Cuint
+    @ccall libandor2.SetDDGIOCPeriod(period::Culonglong)::Cuint
 end
 
 """
@@ -2945,11 +2891,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGIOCTrigger(at_u32 trigger);
+unsigned int WINAPI SetDDGIOCTrigger(at_u32 trigger);
 ```
 """
 function SetDDGIOCTrigger(trigger)
-    @ccall libandor.SetDDGIOCTrigger(trigger::Cuint)::Cuint
+    @ccall libandor2.SetDDGIOCTrigger(trigger::Culong)::Cuint
 end
 
 """
@@ -2957,11 +2903,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGOpticalWidthEnabled(at_u32 uiEnabled);
+unsigned int WINAPI SetDDGOpticalWidthEnabled(at_u32 uiEnabled);
 ```
 """
 function SetDDGOpticalWidthEnabled(uiEnabled)
-    @ccall libandor.SetDDGOpticalWidthEnabled(uiEnabled::Cuint)::Cuint
+    @ccall libandor2.SetDDGOpticalWidthEnabled(uiEnabled::Culong)::Cuint
 end
 
 """
@@ -2969,11 +2915,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGLiteGlobalControlByte(unsigned char control);
+unsigned int WINAPI SetDDGLiteGlobalControlByte(unsigned char control);
 ```
 """
 function SetDDGLiteGlobalControlByte(control)
-    @ccall libandor.SetDDGLiteGlobalControlByte(control::Cuchar)::Cuint
+    @ccall libandor2.SetDDGLiteGlobalControlByte(control::Cuchar)::Cuint
 end
 
 """
@@ -2981,11 +2927,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGLiteControlByte(AT_DDGLiteChannelId channel, unsigned char control);
+unsigned int WINAPI SetDDGLiteControlByte(AT_DDGLiteChannelId channel, unsigned char control);
 ```
 """
 function SetDDGLiteControlByte(channel, control)
-    @ccall libandor.SetDDGLiteControlByte(channel::AT_DDGLiteChannelId, control::Cuchar)::Cuint
+    @ccall libandor2.SetDDGLiteControlByte(channel::AT_DDGLiteChannelId, control::Cuchar)::Cuint
 end
 
 """
@@ -2993,11 +2939,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGLiteInitialDelay(AT_DDGLiteChannelId channel, float fDelay);
+unsigned int WINAPI SetDDGLiteInitialDelay(AT_DDGLiteChannelId channel, float fDelay);
 ```
 """
 function SetDDGLiteInitialDelay(channel, fDelay)
-    @ccall libandor.SetDDGLiteInitialDelay(channel::AT_DDGLiteChannelId, fDelay::Cfloat)::Cuint
+    @ccall libandor2.SetDDGLiteInitialDelay(channel::AT_DDGLiteChannelId, fDelay::Cfloat)::Cuint
 end
 
 """
@@ -3005,11 +2951,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGLitePulseWidth(AT_DDGLiteChannelId channel, float fWidth);
+unsigned int WINAPI SetDDGLitePulseWidth(AT_DDGLiteChannelId channel, float fWidth);
 ```
 """
 function SetDDGLitePulseWidth(channel, fWidth)
-    @ccall libandor.SetDDGLitePulseWidth(channel::AT_DDGLiteChannelId, fWidth::Cfloat)::Cuint
+    @ccall libandor2.SetDDGLitePulseWidth(channel::AT_DDGLiteChannelId, fWidth::Cfloat)::Cuint
 end
 
 """
@@ -3017,11 +2963,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGLiteInterPulseDelay(AT_DDGLiteChannelId channel, float fDelay);
+unsigned int WINAPI SetDDGLiteInterPulseDelay(AT_DDGLiteChannelId channel, float fDelay);
 ```
 """
 function SetDDGLiteInterPulseDelay(channel, fDelay)
-    @ccall libandor.SetDDGLiteInterPulseDelay(channel::AT_DDGLiteChannelId, fDelay::Cfloat)::Cuint
+    @ccall libandor2.SetDDGLiteInterPulseDelay(channel::AT_DDGLiteChannelId, fDelay::Cfloat)::Cuint
 end
 
 """
@@ -3029,11 +2975,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGLitePulsesPerExposure(AT_DDGLiteChannelId channel, at_u32 ui32Pulses);
+unsigned int WINAPI SetDDGLitePulsesPerExposure(AT_DDGLiteChannelId channel, at_u32 ui32Pulses);
 ```
 """
 function SetDDGLitePulsesPerExposure(channel, ui32Pulses)
-    @ccall libandor.SetDDGLitePulsesPerExposure(channel::AT_DDGLiteChannelId, ui32Pulses::Cuint)::Cuint
+    @ccall libandor2.SetDDGLitePulsesPerExposure(channel::AT_DDGLiteChannelId, ui32Pulses::Culong)::Cuint
 end
 
 """
@@ -3041,11 +2987,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGStepCoefficients(at_u32 mode, double p1, double p2);
+unsigned int WINAPI SetDDGStepCoefficients(at_u32 mode, double p1, double p2);
 ```
 """
 function SetDDGStepCoefficients(mode, p1, p2)
-    @ccall libandor.SetDDGStepCoefficients(mode::Cuint, p1::Cdouble, p2::Cdouble)::Cuint
+    @ccall libandor2.SetDDGStepCoefficients(mode::Culong, p1::Cdouble, p2::Cdouble)::Cuint
 end
 
 """
@@ -3053,11 +2999,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGWidthStepCoefficients(at_u32 mode, double p1, double p2);
+unsigned int WINAPI SetDDGWidthStepCoefficients(at_u32 mode, double p1, double p2);
 ```
 """
 function SetDDGWidthStepCoefficients(mode, p1, p2)
-    @ccall libandor.SetDDGWidthStepCoefficients(mode::Cuint, p1::Cdouble, p2::Cdouble)::Cuint
+    @ccall libandor2.SetDDGWidthStepCoefficients(mode::Culong, p1::Cdouble, p2::Cdouble)::Cuint
 end
 
 """
@@ -3065,11 +3011,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGStepMode(at_u32 mode);
+unsigned int WINAPI SetDDGStepMode(at_u32 mode);
 ```
 """
 function SetDDGStepMode(mode)
-    @ccall libandor.SetDDGStepMode(mode::Cuint)::Cuint
+    @ccall libandor2.SetDDGStepMode(mode::Culong)::Cuint
 end
 
 """
@@ -3077,11 +3023,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGWidthStepMode(at_u32 mode);
+unsigned int WINAPI SetDDGWidthStepMode(at_u32 mode);
 ```
 """
 function SetDDGWidthStepMode(mode)
-    @ccall libandor.SetDDGWidthStepMode(mode::Cuint)::Cuint
+    @ccall libandor2.SetDDGWidthStepMode(mode::Culong)::Cuint
 end
 
 """
@@ -3089,11 +3035,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGTimes(double t0, double t1, double t2);
+unsigned int WINAPI SetDDGTimes(double t0, double t1, double t2);
 ```
 """
 function SetDDGTimes(t0, t1, t2)
-    @ccall libandor.SetDDGTimes(t0::Cdouble, t1::Cdouble, t2::Cdouble)::Cuint
+    @ccall libandor2.SetDDGTimes(t0::Cdouble, t1::Cdouble, t2::Cdouble)::Cuint
 end
 
 """
@@ -3101,11 +3047,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGTriggerMode(int mode);
+unsigned int WINAPI SetDDGTriggerMode(int mode);
 ```
 """
 function SetDDGTriggerMode(mode)
-    @ccall libandor.SetDDGTriggerMode(mode::Cint)::Cuint
+    @ccall libandor2.SetDDGTriggerMode(mode::Cint)::Cuint
 end
 
 """
@@ -3113,11 +3059,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDDGVariableGateStep(int mode, double p1, double p2);
+unsigned int WINAPI SetDDGVariableGateStep(int mode, double p1, double p2);
 ```
 """
 function SetDDGVariableGateStep(mode, p1, p2)
-    @ccall libandor.SetDDGVariableGateStep(mode::Cint, p1::Cdouble, p2::Cdouble)::Cuint
+    @ccall libandor2.SetDDGVariableGateStep(mode::Cint, p1::Cdouble, p2::Cdouble)::Cuint
 end
 
 """
@@ -3125,11 +3071,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDelayGenerator(int board, short address, int typ);
+unsigned int WINAPI SetDelayGenerator(int board, short address, int typ);
 ```
 """
 function SetDelayGenerator(board, address, typ)
-    @ccall libandor.SetDelayGenerator(board::Cint, address::Cshort, typ::Cint)::Cuint
+    @ccall libandor2.SetDelayGenerator(board::Cint, address::Cshort, typ::Cint)::Cuint
 end
 
 """
@@ -3137,11 +3083,23 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDMAParameters(int MaxImagesPerDMA, float SecondsPerDMA);
+unsigned int WINAPI SetDMAParameters(int MaxImagesPerDMA, float SecondsPerDMA);
 ```
 """
 function SetDMAParameters(MaxImagesPerDMA, SecondsPerDMA)
-    @ccall libandor.SetDMAParameters(MaxImagesPerDMA::Cint, SecondsPerDMA::Cfloat)::Cuint
+    @ccall libandor2.SetDMAParameters(MaxImagesPerDMA::Cint, SecondsPerDMA::Cfloat)::Cuint
+end
+
+"""
+    SetDriverEvent(driverEvent)
+
+### Prototype
+```c
+unsigned int WINAPI SetDriverEvent(HANDLE driverEvent);
+```
+"""
+function SetDriverEvent(driverEvent)
+    @ccall libandor2.SetDriverEvent(driverEvent::HANDLE)::Cuint
 end
 
 """
@@ -3149,11 +3107,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetEMAdvanced(int state);
+unsigned int WINAPI SetEMAdvanced(int state);
 ```
 """
 function SetEMAdvanced(state)
-    @ccall libandor.SetEMAdvanced(state::Cint)::Cuint
+    @ccall libandor2.SetEMAdvanced(state::Cint)::Cuint
 end
 
 """
@@ -3161,11 +3119,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetEMCCDGain(int gain);
+unsigned int WINAPI SetEMCCDGain(int gain);
 ```
 """
 function SetEMCCDGain(gain)
-    @ccall libandor.SetEMCCDGain(gain::Cint)::Cuint
+    @ccall libandor2.SetEMCCDGain(gain::Cint)::Cuint
 end
 
 """
@@ -3173,11 +3131,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetEMClockCompensation(int EMClockCompensationFlag);
+unsigned int WINAPI SetEMClockCompensation(int EMClockCompensationFlag);
 ```
 """
 function SetEMClockCompensation(EMClockCompensationFlag)
-    @ccall libandor.SetEMClockCompensation(EMClockCompensationFlag::Cint)::Cuint
+    @ccall libandor2.SetEMClockCompensation(EMClockCompensationFlag::Cint)::Cuint
 end
 
 """
@@ -3185,11 +3143,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetEMGainMode(int mode);
+unsigned int WINAPI SetEMGainMode(int mode);
 ```
 """
 function SetEMGainMode(mode)
-    @ccall libandor.SetEMGainMode(mode::Cint)::Cuint
+    @ccall libandor2.SetEMGainMode(mode::Cint)::Cuint
 end
 
 """
@@ -3197,11 +3155,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetExposureTime(float time);
+unsigned int WINAPI SetExposureTime(float time);
 ```
 """
 function SetExposureTime(time)
-    @ccall libandor.SetExposureTime(time::Cfloat)::Cuint
+    @ccall libandor2.SetExposureTime(time::Cfloat)::Cuint
 end
 
 """
@@ -3209,11 +3167,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetExternalTriggerTermination(at_u32 uiTermination);
+unsigned int WINAPI SetExternalTriggerTermination(at_u32 uiTermination);
 ```
 """
 function SetExternalTriggerTermination(uiTermination)
-    @ccall libandor.SetExternalTriggerTermination(uiTermination::Cuint)::Cuint
+    @ccall libandor2.SetExternalTriggerTermination(uiTermination::Culong)::Cuint
 end
 
 """
@@ -3221,11 +3179,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetFanMode(int mode);
+unsigned int WINAPI SetFanMode(int mode);
 ```
 """
 function SetFanMode(mode)
-    @ccall libandor.SetFanMode(mode::Cint)::Cuint
+    @ccall libandor2.SetFanMode(mode::Cint)::Cuint
 end
 
 """
@@ -3233,11 +3191,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetFastExtTrigger(int mode);
+unsigned int WINAPI SetFastExtTrigger(int mode);
 ```
 """
 function SetFastExtTrigger(mode)
-    @ccall libandor.SetFastExtTrigger(mode::Cint)::Cuint
+    @ccall libandor2.SetFastExtTrigger(mode::Cint)::Cuint
 end
 
 """
@@ -3245,11 +3203,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetFastKinetics(int exposedRows, int seriesLength, float time, int mode, int hbin, int vbin);
+unsigned int WINAPI SetFastKinetics(int exposedRows, int seriesLength, float time, int mode, int hbin, int vbin);
 ```
 """
 function SetFastKinetics(exposedRows, seriesLength, time, mode, hbin, vbin)
-    @ccall libandor.SetFastKinetics(exposedRows::Cint, seriesLength::Cint, time::Cfloat, mode::Cint, hbin::Cint, vbin::Cint)::Cuint
+    @ccall libandor2.SetFastKinetics(exposedRows::Cint, seriesLength::Cint, time::Cfloat, mode::Cint, hbin::Cint, vbin::Cint)::Cuint
 end
 
 """
@@ -3257,35 +3215,35 @@ end
 
 ### Prototype
 ```c
-unsigned int SetFastKineticsEx(int exposedRows, int seriesLength, float time, int mode, int hbin, int vbin, int offset);
+unsigned int WINAPI SetFastKineticsEx(int exposedRows, int seriesLength, float time, int mode, int hbin, int vbin, int offset);
 ```
 """
 function SetFastKineticsEx(exposedRows, seriesLength, time, mode, hbin, vbin, offset)
-    @ccall libandor.SetFastKineticsEx(exposedRows::Cint, seriesLength::Cint, time::Cfloat, mode::Cint, hbin::Cint, vbin::Cint, offset::Cint)::Cuint
+    @ccall libandor2.SetFastKineticsEx(exposedRows::Cint, seriesLength::Cint, time::Cfloat, mode::Cint, hbin::Cint, vbin::Cint, offset::Cint)::Cuint
 end
 
 """
-    SetFastKineticsStorageMode(mode)
+    SetSuperKinetics(exposedRows, seriesLength, time, mode, hbin, vbin, offset)
 
 ### Prototype
 ```c
-unsigned int SetFastKineticsStorageMode(int mode);
+unsigned int WINAPI SetSuperKinetics(int exposedRows, int seriesLength, float time, int mode, int hbin, int vbin, int offset);
 ```
 """
-function SetFastKineticsStorageMode(mode)
-    @ccall libandor.SetFastKineticsStorageMode(mode::Cint)::Cuint
+function SetSuperKinetics(exposedRows, seriesLength, time, mode, hbin, vbin, offset)
+    @ccall libandor2.SetSuperKinetics(exposedRows::Cint, seriesLength::Cint, time::Cfloat, mode::Cint, hbin::Cint, vbin::Cint, offset::Cint)::Cuint
 end
 
 """
-    SetFastKineticsTimeScanMode(rows, tracks, mode)
+    SetTimeScan(rows, tracks, mode)
 
 ### Prototype
 ```c
-unsigned int SetFastKineticsTimeScanMode(int rows, int tracks, int mode);
+unsigned int WINAPI SetTimeScan(int rows, int tracks, int mode);
 ```
 """
-function SetFastKineticsTimeScanMode(rows, tracks, mode)
-    @ccall libandor.SetFastKineticsTimeScanMode(rows::Cint, tracks::Cint, mode::Cint)::Cuint
+function SetTimeScan(rows, tracks, mode)
+    @ccall libandor2.SetTimeScan(rows::Cint, tracks::Cint, mode::Cint)::Cuint
 end
 
 """
@@ -3293,11 +3251,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetFilterMode(int mode);
+unsigned int WINAPI SetFilterMode(int mode);
 ```
 """
 function SetFilterMode(mode)
-    @ccall libandor.SetFilterMode(mode::Cint)::Cuint
+    @ccall libandor2.SetFilterMode(mode::Cint)::Cuint
 end
 
 """
@@ -3305,11 +3263,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetFilterParameters(int width, float sensitivity, int range, float accept, int smooth, int noise);
+unsigned int WINAPI SetFilterParameters(int width, float sensitivity, int range, float accept, int smooth, int noise);
 ```
 """
 function SetFilterParameters(width, sensitivity, range, accept, smooth, noise)
-    @ccall libandor.SetFilterParameters(width::Cint, sensitivity::Cfloat, range::Cint, accept::Cfloat, smooth::Cint, noise::Cint)::Cuint
+    @ccall libandor2.SetFilterParameters(width::Cint, sensitivity::Cfloat, range::Cint, accept::Cfloat, smooth::Cint, noise::Cint)::Cuint
 end
 
 """
@@ -3317,11 +3275,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetFKVShiftSpeed(int index);
+unsigned int WINAPI SetFKVShiftSpeed(int index);
 ```
 """
 function SetFKVShiftSpeed(index)
-    @ccall libandor.SetFKVShiftSpeed(index::Cint)::Cuint
+    @ccall libandor2.SetFKVShiftSpeed(index::Cint)::Cuint
 end
 
 """
@@ -3329,11 +3287,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetFPDP(int state);
+unsigned int WINAPI SetFPDP(int state);
 ```
 """
 function SetFPDP(state)
-    @ccall libandor.SetFPDP(state::Cint)::Cuint
+    @ccall libandor2.SetFPDP(state::Cint)::Cuint
 end
 
 """
@@ -3341,11 +3299,23 @@ end
 
 ### Prototype
 ```c
-unsigned int SetFrameTransferMode(int mode);
+unsigned int WINAPI SetFrameTransferMode(int mode);
 ```
 """
 function SetFrameTransferMode(mode)
-    @ccall libandor.SetFrameTransferMode(mode::Cint)::Cuint
+    @ccall libandor2.SetFrameTransferMode(mode::Cint)::Cuint
+end
+
+"""
+    SetFrontEndEvent(driverEvent)
+
+### Prototype
+```c
+unsigned int WINAPI SetFrontEndEvent(HANDLE driverEvent);
+```
+"""
+function SetFrontEndEvent(driverEvent)
+    @ccall libandor2.SetFrontEndEvent(driverEvent::HANDLE)::Cuint
 end
 
 """
@@ -3353,11 +3323,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetFullImage(int hbin, int vbin);
+unsigned int WINAPI SetFullImage(int hbin, int vbin);
 ```
 """
 function SetFullImage(hbin, vbin)
-    @ccall libandor.SetFullImage(hbin::Cint, vbin::Cint)::Cuint
+    @ccall libandor2.SetFullImage(hbin::Cint, vbin::Cint)::Cuint
 end
 
 """
@@ -3365,11 +3335,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetFVBHBin(int bin);
+unsigned int WINAPI SetFVBHBin(int bin);
 ```
 """
 function SetFVBHBin(bin)
-    @ccall libandor.SetFVBHBin(bin::Cint)::Cuint
+    @ccall libandor2.SetFVBHBin(bin::Cint)::Cuint
 end
 
 """
@@ -3377,11 +3347,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetGain(int gain);
+unsigned int WINAPI SetGain(int gain);
 ```
 """
 function SetGain(gain)
-    @ccall libandor.SetGain(gain::Cint)::Cuint
+    @ccall libandor2.SetGain(gain::Cint)::Cuint
 end
 
 """
@@ -3389,11 +3359,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetGate(float delay, float width, float stepRenamed);
+unsigned int WINAPI SetGate(float delay, float width, float stepRenamed);
 ```
 """
 function SetGate(delay, width, stepRenamed)
-    @ccall libandor.SetGate(delay::Cfloat, width::Cfloat, stepRenamed::Cfloat)::Cuint
+    @ccall libandor2.SetGate(delay::Cfloat, width::Cfloat, stepRenamed::Cfloat)::Cuint
 end
 
 """
@@ -3401,11 +3371,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetGateMode(int gatemode);
+unsigned int WINAPI SetGateMode(int gatemode);
 ```
 """
 function SetGateMode(gatemode)
-    @ccall libandor.SetGateMode(gatemode::Cint)::Cuint
+    @ccall libandor2.SetGateMode(gatemode::Cint)::Cuint
 end
 
 """
@@ -3413,11 +3383,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetHighCapacity(int state);
+unsigned int WINAPI SetHighCapacity(int state);
 ```
 """
 function SetHighCapacity(state)
-    @ccall libandor.SetHighCapacity(state::Cint)::Cuint
+    @ccall libandor2.SetHighCapacity(state::Cint)::Cuint
 end
 
 """
@@ -3425,11 +3395,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetHorizontalSpeed(int index);
+unsigned int WINAPI SetHorizontalSpeed(int index);
 ```
 """
 function SetHorizontalSpeed(index)
-    @ccall libandor.SetHorizontalSpeed(index::Cint)::Cuint
+    @ccall libandor2.SetHorizontalSpeed(index::Cint)::Cuint
 end
 
 """
@@ -3437,11 +3407,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetHSSpeed(int typ, int index);
+unsigned int WINAPI SetHSSpeed(int typ, int index);
 ```
 """
 function SetHSSpeed(typ, index)
-    @ccall libandor.SetHSSpeed(typ::Cint, index::Cint)::Cuint
+    @ccall libandor2.SetHSSpeed(typ::Cint, index::Cint)::Cuint
 end
 
 """
@@ -3449,11 +3419,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetImage(int hbin, int vbin, int hstart, int hend, int vstart, int vend);
+unsigned int WINAPI SetImage(int hbin, int vbin, int hstart, int hend, int vstart, int vend);
 ```
 """
 function SetImage(hbin, vbin, hstart, hend, vstart, vend)
-    @ccall libandor.SetImage(hbin::Cint, vbin::Cint, hstart::Cint, hend::Cint, vstart::Cint, vend::Cint)::Cuint
+    @ccall libandor2.SetImage(hbin::Cint, vbin::Cint, hstart::Cint, hend::Cint, vstart::Cint, vend::Cint)::Cuint
 end
 
 """
@@ -3461,11 +3431,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetImageFlip(int iHFlip, int iVFlip);
+unsigned int WINAPI SetImageFlip(int iHFlip, int iVFlip);
 ```
 """
 function SetImageFlip(iHFlip, iVFlip)
-    @ccall libandor.SetImageFlip(iHFlip::Cint, iVFlip::Cint)::Cuint
+    @ccall libandor2.SetImageFlip(iHFlip::Cint, iVFlip::Cint)::Cuint
 end
 
 """
@@ -3473,11 +3443,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetImageRotate(int iRotate);
+unsigned int WINAPI SetImageRotate(int iRotate);
 ```
 """
 function SetImageRotate(iRotate)
-    @ccall libandor.SetImageRotate(iRotate::Cint)::Cuint
+    @ccall libandor2.SetImageRotate(iRotate::Cint)::Cuint
 end
 
 """
@@ -3485,11 +3455,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetIsolatedCropMode(int active, int cropheight, int cropwidth, int vbin, int hbin);
+unsigned int WINAPI SetIsolatedCropMode(int active, int cropheight, int cropwidth, int vbin, int hbin);
 ```
 """
 function SetIsolatedCropMode(active, cropheight, cropwidth, vbin, hbin)
-    @ccall libandor.SetIsolatedCropMode(active::Cint, cropheight::Cint, cropwidth::Cint, vbin::Cint, hbin::Cint)::Cuint
+    @ccall libandor2.SetIsolatedCropMode(active::Cint, cropheight::Cint, cropwidth::Cint, vbin::Cint, hbin::Cint)::Cuint
 end
 
 """
@@ -3497,23 +3467,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetIsolatedCropModeEx(int active, int cropheight, int cropwidth, int vbin, int hbin, int cropleft, int cropbottom);
+unsigned int WINAPI SetIsolatedCropModeEx(int active, int cropheight, int cropwidth, int vbin, int hbin, int cropleft, int cropbottom);
 ```
 """
 function SetIsolatedCropModeEx(active, cropheight, cropwidth, vbin, hbin, cropleft, cropbottom)
-    @ccall libandor.SetIsolatedCropModeEx(active::Cint, cropheight::Cint, cropwidth::Cint, vbin::Cint, hbin::Cint, cropleft::Cint, cropbottom::Cint)::Cuint
-end
-
-"""
-    SetIsolatedCropModeType(type)
-
-### Prototype
-```c
-unsigned int SetIsolatedCropModeType(int type);
-```
-"""
-function SetIsolatedCropModeType(type)
-    @ccall libandor.SetIsolatedCropModeType(type::Cint)::Cuint
+    @ccall libandor2.SetIsolatedCropModeEx(active::Cint, cropheight::Cint, cropwidth::Cint, vbin::Cint, hbin::Cint, cropleft::Cint, cropbottom::Cint)::Cuint
 end
 
 """
@@ -3521,11 +3479,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetKineticCycleTime(float time);
+unsigned int WINAPI SetKineticCycleTime(float time);
 ```
 """
 function SetKineticCycleTime(time)
-    @ccall libandor.SetKineticCycleTime(time::Cfloat)::Cuint
+    @ccall libandor2.SetKineticCycleTime(time::Cfloat)::Cuint
 end
 
 """
@@ -3533,11 +3491,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetMCPGain(int gain);
+unsigned int WINAPI SetMCPGain(int gain);
 ```
 """
 function SetMCPGain(gain)
-    @ccall libandor.SetMCPGain(gain::Cint)::Cuint
+    @ccall libandor2.SetMCPGain(gain::Cint)::Cuint
 end
 
 """
@@ -3545,23 +3503,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetMCPGating(int gating);
+unsigned int WINAPI SetMCPGating(int gating);
 ```
 """
 function SetMCPGating(gating)
-    @ccall libandor.SetMCPGating(gating::Cint)::Cuint
-end
-
-"""
-    SetMessageWindow(wnd)
-
-### Prototype
-```c
-unsigned int SetMessageWindow(int wnd);
-```
-"""
-function SetMessageWindow(wnd)
-    @ccall libandor.SetMessageWindow(wnd::Cint)::Cuint
+    @ccall libandor2.SetMCPGating(gating::Cint)::Cuint
 end
 
 """
@@ -3569,11 +3515,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetMetaData(int state);
+unsigned int WINAPI SetMetaData(int state);
 ```
 """
 function SetMetaData(state)
-    @ccall libandor.SetMetaData(state::Cint)::Cuint
+    @ccall libandor2.SetMetaData(state::Cint)::Cuint
 end
 
 """
@@ -3581,11 +3527,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetMultiTrack(int number, int height, int offset, int * bottom, int * gap);
+unsigned int WINAPI SetMultiTrack(int number, int height, int offset, int * bottom, int * gap);
 ```
 """
 function SetMultiTrack(number, height, offset, bottom, gap)
-    @ccall libandor.SetMultiTrack(number::Cint, height::Cint, offset::Cint, bottom::Ptr{Cint}, gap::Ptr{Cint})::Cuint
+    @ccall libandor2.SetMultiTrack(number::Cint, height::Cint, offset::Cint, bottom::Ptr{Cint}, gap::Ptr{Cint})::Cuint
 end
 
 """
@@ -3593,11 +3539,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetMultiTrackHBin(int bin);
+unsigned int WINAPI SetMultiTrackHBin(int bin);
 ```
 """
 function SetMultiTrackHBin(bin)
-    @ccall libandor.SetMultiTrackHBin(bin::Cint)::Cuint
+    @ccall libandor2.SetMultiTrackHBin(bin::Cint)::Cuint
 end
 
 """
@@ -3605,11 +3551,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetMultiTrackHRange(int iStart, int iEnd);
+unsigned int WINAPI SetMultiTrackHRange(int iStart, int iEnd);
 ```
 """
 function SetMultiTrackHRange(iStart, iEnd)
-    @ccall libandor.SetMultiTrackHRange(iStart::Cint, iEnd::Cint)::Cuint
+    @ccall libandor2.SetMultiTrackHRange(iStart::Cint, iEnd::Cint)::Cuint
 end
 
 """
@@ -3617,11 +3563,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetMultiTrackScan(int trackHeight, int numberTracks, int iSIHStart, int iSIHEnd, int trackHBinning, int trackVBinning, int trackGap, int trackOffset, int trackSkip, int numberSubFrames);
+unsigned int WINAPI SetMultiTrackScan(int trackHeight, int numberTracks, int iSIHStart, int iSIHEnd, int trackHBinning, int trackVBinning, int trackGap, int trackOffset, int trackSkip, int numberSubFrames);
 ```
 """
 function SetMultiTrackScan(trackHeight, numberTracks, iSIHStart, iSIHEnd, trackHBinning, trackVBinning, trackGap, trackOffset, trackSkip, numberSubFrames)
-    @ccall libandor.SetMultiTrackScan(trackHeight::Cint, numberTracks::Cint, iSIHStart::Cint, iSIHEnd::Cint, trackHBinning::Cint, trackVBinning::Cint, trackGap::Cint, trackOffset::Cint, trackSkip::Cint, numberSubFrames::Cint)::Cuint
+    @ccall libandor2.SetMultiTrackScan(trackHeight::Cint, numberTracks::Cint, iSIHStart::Cint, iSIHEnd::Cint, trackHBinning::Cint, trackVBinning::Cint, trackGap::Cint, trackOffset::Cint, trackSkip::Cint, numberSubFrames::Cint)::Cuint
 end
 
 """
@@ -3629,11 +3575,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetNextAddress(at_32 * data, at_32 lowAdd, at_32 highAdd, at_32 length, at_32 physical);
+unsigned int WINAPI SetNextAddress(at_32 * data, long lowAdd, long highAdd, long length, long physical);
 ```
 """
 function SetNextAddress(data, lowAdd, highAdd, length, physical)
-    @ccall libandor.SetNextAddress(data::Ptr{Cint}, lowAdd::Cint, highAdd::Cint, length::Cint, physical::Cint)::Cuint
+    @ccall libandor2.SetNextAddress(data::Ptr{Clong}, lowAdd::Clong, highAdd::Clong, length::Clong, physical::Clong)::Cuint
 end
 
 """
@@ -3641,11 +3587,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetNextAddress16(at_32 * data, at_32 lowAdd, at_32 highAdd, at_32 length, at_32 physical);
+unsigned int WINAPI SetNextAddress16(at_32 * data, long lowAdd, long highAdd, long length, long physical);
 ```
 """
 function SetNextAddress16(data, lowAdd, highAdd, length, physical)
-    @ccall libandor.SetNextAddress16(data::Ptr{Cint}, lowAdd::Cint, highAdd::Cint, length::Cint, physical::Cint)::Cuint
+    @ccall libandor2.SetNextAddress16(data::Ptr{Clong}, lowAdd::Clong, highAdd::Clong, length::Clong, physical::Clong)::Cuint
 end
 
 """
@@ -3653,11 +3599,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetNumberAccumulations(int number);
+unsigned int WINAPI SetNumberAccumulations(int number);
 ```
 """
 function SetNumberAccumulations(number)
-    @ccall libandor.SetNumberAccumulations(number::Cint)::Cuint
+    @ccall libandor2.SetNumberAccumulations(number::Cint)::Cuint
 end
 
 """
@@ -3665,11 +3611,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetNumberKinetics(int number);
+unsigned int WINAPI SetNumberKinetics(int number);
 ```
 """
 function SetNumberKinetics(number)
-    @ccall libandor.SetNumberKinetics(number::Cint)::Cuint
+    @ccall libandor2.SetNumberKinetics(number::Cint)::Cuint
 end
 
 """
@@ -3677,11 +3623,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetNumberPrescans(int iNumber);
+unsigned int WINAPI SetNumberPrescans(int iNumber);
 ```
 """
 function SetNumberPrescans(iNumber)
-    @ccall libandor.SetNumberPrescans(iNumber::Cint)::Cuint
+    @ccall libandor2.SetNumberPrescans(iNumber::Cint)::Cuint
 end
 
 """
@@ -3689,11 +3635,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetOutputAmplifier(int typ);
+unsigned int WINAPI SetOutputAmplifier(int typ);
 ```
 """
 function SetOutputAmplifier(typ)
-    @ccall libandor.SetOutputAmplifier(typ::Cint)::Cuint
+    @ccall libandor2.SetOutputAmplifier(typ::Cint)::Cuint
 end
 
 """
@@ -3701,11 +3647,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetOverlapMode(int mode);
+unsigned int WINAPI SetOverlapMode(int mode);
 ```
 """
 function SetOverlapMode(mode)
-    @ccall libandor.SetOverlapMode(mode::Cint)::Cuint
+    @ccall libandor2.SetOverlapMode(mode::Cint)::Cuint
 end
 
 """
@@ -3713,11 +3659,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetPCIMode(int mode, int value);
+unsigned int WINAPI SetPCIMode(int mode, int value);
 ```
 """
 function SetPCIMode(mode, value)
-    @ccall libandor.SetPCIMode(mode::Cint, value::Cint)::Cuint
+    @ccall libandor2.SetPCIMode(mode::Cint, value::Cint)::Cuint
 end
 
 """
@@ -3725,11 +3671,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetPhotonCounting(int state);
+unsigned int WINAPI SetPhotonCounting(int state);
 ```
 """
 function SetPhotonCounting(state)
-    @ccall libandor.SetPhotonCounting(state::Cint)::Cuint
+    @ccall libandor2.SetPhotonCounting(state::Cint)::Cuint
 end
 
 """
@@ -3737,11 +3683,23 @@ end
 
 ### Prototype
 ```c
-unsigned int SetPhotonCountingThreshold(at_32 min, at_32 max);
+unsigned int WINAPI SetPhotonCountingThreshold(long min, long max);
 ```
 """
 function SetPhotonCountingThreshold(min, max)
-    @ccall libandor.SetPhotonCountingThreshold(min::Cint, max::Cint)::Cuint
+    @ccall libandor2.SetPhotonCountingThreshold(min::Clong, max::Clong)::Cuint
+end
+
+"""
+    SetPhosphorEvent(driverEvent)
+
+### Prototype
+```c
+unsigned int WINAPI SetPhosphorEvent(HANDLE driverEvent);
+```
+"""
+function SetPhosphorEvent(driverEvent)
+    @ccall libandor2.SetPhosphorEvent(driverEvent::HANDLE)::Cuint
 end
 
 """
@@ -3749,11 +3707,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetPhotonCountingDivisions(at_u32 noOfDivisions, at_32 * divisions);
+unsigned int WINAPI SetPhotonCountingDivisions(at_u32 noOfDivisions, at_32 * divisions);
 ```
 """
 function SetPhotonCountingDivisions(noOfDivisions, divisions)
-    @ccall libandor.SetPhotonCountingDivisions(noOfDivisions::Cuint, divisions::Ptr{Cint})::Cuint
+    @ccall libandor2.SetPhotonCountingDivisions(noOfDivisions::Culong, divisions::Ptr{Clong})::Cuint
 end
 
 """
@@ -3761,11 +3719,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetPixelMode(int bitdepth, int colormode);
+unsigned int WINAPI SetPixelMode(int bitdepth, int colormode);
 ```
 """
 function SetPixelMode(bitdepth, colormode)
-    @ccall libandor.SetPixelMode(bitdepth::Cint, colormode::Cint)::Cuint
+    @ccall libandor2.SetPixelMode(bitdepth::Cint, colormode::Cint)::Cuint
 end
 
 """
@@ -3773,11 +3731,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetPreAmpGain(int index);
+unsigned int WINAPI SetPreAmpGain(int index);
 ```
 """
 function SetPreAmpGain(index)
-    @ccall libandor.SetPreAmpGain(index::Cint)::Cuint
+    @ccall libandor2.SetPreAmpGain(index::Cint)::Cuint
 end
 
 """
@@ -3785,11 +3743,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDualExposureTimes(float expTime1, float expTime2);
+unsigned int WINAPI SetDualExposureTimes(float expTime1, float expTime2);
 ```
 """
 function SetDualExposureTimes(expTime1, expTime2)
-    @ccall libandor.SetDualExposureTimes(expTime1::Cfloat, expTime2::Cfloat)::Cuint
+    @ccall libandor2.SetDualExposureTimes(expTime1::Cfloat, expTime2::Cfloat)::Cuint
 end
 
 """
@@ -3797,11 +3755,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetDualExposureMode(int mode);
+unsigned int WINAPI SetDualExposureMode(int mode);
 ```
 """
 function SetDualExposureMode(mode)
-    @ccall libandor.SetDualExposureMode(mode::Cint)::Cuint
+    @ccall libandor2.SetDualExposureMode(mode::Cint)::Cuint
 end
 
 """
@@ -3809,11 +3767,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetRandomTracks(int numTracks, int * areas);
+unsigned int WINAPI SetRandomTracks(int numTracks, int * areas);
 ```
 """
 function SetRandomTracks(numTracks, areas)
-    @ccall libandor.SetRandomTracks(numTracks::Cint, areas::Ptr{Cint})::Cuint
+    @ccall libandor2.SetRandomTracks(numTracks::Cint, areas::Ptr{Cint})::Cuint
 end
 
 """
@@ -3821,11 +3779,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetReadMode(int mode);
+unsigned int WINAPI SetReadMode(int mode);
 ```
 """
 function SetReadMode(mode)
-    @ccall libandor.SetReadMode(mode::Cint)::Cuint
+    @ccall libandor2.SetReadMode(mode::Cint)::Cuint
 end
 
 """
@@ -3833,11 +3791,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetReadoutRegisterPacking(unsigned int mode);
+unsigned int WINAPI SetReadoutRegisterPacking(unsigned int mode);
 ```
 """
 function SetReadoutRegisterPacking(mode)
-    @ccall libandor.SetReadoutRegisterPacking(mode::Cuint)::Cuint
+    @ccall libandor2.SetReadoutRegisterPacking(mode::Cuint)::Cuint
 end
 
 """
@@ -3845,11 +3803,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetRegisterDump(int mode);
+unsigned int WINAPI SetRegisterDump(int mode);
 ```
 """
 function SetRegisterDump(mode)
-    @ccall libandor.SetRegisterDump(mode::Cint)::Cuint
+    @ccall libandor2.SetRegisterDump(mode::Cint)::Cuint
 end
 
 """
@@ -3857,11 +3815,23 @@ end
 
 ### Prototype
 ```c
-unsigned int SetRingExposureTimes(int numTimes, float * times);
+unsigned int WINAPI SetRingExposureTimes(int numTimes, float * times);
 ```
 """
 function SetRingExposureTimes(numTimes, times)
-    @ccall libandor.SetRingExposureTimes(numTimes::Cint, times::Ptr{Cfloat})::Cuint
+    @ccall libandor2.SetRingExposureTimes(numTimes::Cint, times::Ptr{Cfloat})::Cuint
+end
+
+"""
+    SetSaturationEvent(saturationEvent)
+
+### Prototype
+```c
+unsigned int WINAPI SetSaturationEvent(HANDLE saturationEvent);
+```
+"""
+function SetSaturationEvent(saturationEvent)
+    @ccall libandor2.SetSaturationEvent(saturationEvent::HANDLE)::Cuint
 end
 
 """
@@ -3869,11 +3839,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetShutter(int typ, int mode, int closingtime, int openingtime);
+unsigned int WINAPI SetShutter(int typ, int mode, int closingtime, int openingtime);
 ```
 """
 function SetShutter(typ, mode, closingtime, openingtime)
-    @ccall libandor.SetShutter(typ::Cint, mode::Cint, closingtime::Cint, openingtime::Cint)::Cuint
+    @ccall libandor2.SetShutter(typ::Cint, mode::Cint, closingtime::Cint, openingtime::Cint)::Cuint
 end
 
 """
@@ -3881,11 +3851,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetShutterEx(int typ, int mode, int closingtime, int openingtime, int extmode);
+unsigned int WINAPI SetShutterEx(int typ, int mode, int closingtime, int openingtime, int extmode);
 ```
 """
 function SetShutterEx(typ, mode, closingtime, openingtime, extmode)
-    @ccall libandor.SetShutterEx(typ::Cint, mode::Cint, closingtime::Cint, openingtime::Cint, extmode::Cint)::Cuint
+    @ccall libandor2.SetShutterEx(typ::Cint, mode::Cint, closingtime::Cint, openingtime::Cint, extmode::Cint)::Cuint
 end
 
 """
@@ -3893,11 +3863,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetShutters(int typ, int mode, int closingtime, int openingtime, int exttype, int extmode, int dummy1, int dummy2);
+unsigned int WINAPI SetShutters(int typ, int mode, int closingtime, int openingtime, int exttype, int extmode, int dummy1, int dummy2);
 ```
 """
 function SetShutters(typ, mode, closingtime, openingtime, exttype, extmode, dummy1, dummy2)
-    @ccall libandor.SetShutters(typ::Cint, mode::Cint, closingtime::Cint, openingtime::Cint, exttype::Cint, extmode::Cint, dummy1::Cint, dummy2::Cint)::Cuint
+    @ccall libandor2.SetShutters(typ::Cint, mode::Cint, closingtime::Cint, openingtime::Cint, exttype::Cint, extmode::Cint, dummy1::Cint, dummy2::Cint)::Cuint
 end
 
 """
@@ -3905,11 +3875,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetSifComment(char * comment);
+unsigned int WINAPI SetSifComment(char * comment);
 ```
 """
 function SetSifComment(comment)
-    @ccall libandor.SetSifComment(comment::Cstring)::Cuint
+    @ccall libandor2.SetSifComment(comment::Cstring)::Cuint
 end
 
 """
@@ -3917,11 +3887,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetSingleTrack(int centre, int height);
+unsigned int WINAPI SetSingleTrack(int centre, int height);
 ```
 """
 function SetSingleTrack(centre, height)
-    @ccall libandor.SetSingleTrack(centre::Cint, height::Cint)::Cuint
+    @ccall libandor2.SetSingleTrack(centre::Cint, height::Cint)::Cuint
 end
 
 """
@@ -3929,11 +3899,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetSingleTrackHBin(int bin);
+unsigned int WINAPI SetSingleTrackHBin(int bin);
 ```
 """
 function SetSingleTrackHBin(bin)
-    @ccall libandor.SetSingleTrackHBin(bin::Cint)::Cuint
+    @ccall libandor2.SetSingleTrackHBin(bin::Cint)::Cuint
 end
 
 """
@@ -3941,11 +3911,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetSpool(int active, int method, char * path, int framebuffersize);
+unsigned int WINAPI SetSpool(int active, int method, char * path, int framebuffersize);
 ```
 """
 function SetSpool(active, method, path, framebuffersize)
-    @ccall libandor.SetSpool(active::Cint, method::Cint, path::Cstring, framebuffersize::Cint)::Cuint
+    @ccall libandor2.SetSpool(active::Cint, method::Cint, path::Cstring, framebuffersize::Cint)::Cuint
 end
 
 """
@@ -3953,11 +3923,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetSpoolThreadCount(int count);
+unsigned int WINAPI SetSpoolThreadCount(int count);
 ```
 """
 function SetSpoolThreadCount(count)
-    @ccall libandor.SetSpoolThreadCount(count::Cint)::Cuint
+    @ccall libandor2.SetSpoolThreadCount(count::Cint)::Cuint
 end
 
 """
@@ -3965,11 +3935,23 @@ end
 
 ### Prototype
 ```c
-unsigned int SetStorageMode(at_32 mode);
+unsigned int WINAPI SetStorageMode(long mode);
 ```
 """
 function SetStorageMode(mode)
-    @ccall libandor.SetStorageMode(mode::Cint)::Cuint
+    @ccall libandor2.SetStorageMode(mode::Clong)::Cuint
+end
+
+"""
+    SetTECEvent(driverEvent)
+
+### Prototype
+```c
+unsigned int WINAPI SetTECEvent(HANDLE driverEvent);
+```
+"""
+function SetTECEvent(driverEvent)
+    @ccall libandor2.SetTECEvent(driverEvent::HANDLE)::Cuint
 end
 
 """
@@ -3977,11 +3959,23 @@ end
 
 ### Prototype
 ```c
-unsigned int SetTemperature(int temperature);
+unsigned int WINAPI SetTemperature(int temperature);
 ```
 """
 function SetTemperature(temperature)
-    @ccall libandor.SetTemperature(temperature::Cint)::Cuint
+    @ccall libandor2.SetTemperature(temperature::Cint)::Cuint
+end
+
+"""
+    SetTemperatureEvent(temperatureEvent)
+
+### Prototype
+```c
+unsigned int WINAPI SetTemperatureEvent(HANDLE temperatureEvent);
+```
+"""
+function SetTemperatureEvent(temperatureEvent)
+    @ccall libandor2.SetTemperatureEvent(temperatureEvent::HANDLE)::Cuint
 end
 
 """
@@ -3989,11 +3983,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetTriggerMode(int mode);
+unsigned int WINAPI SetTriggerMode(int mode);
 ```
 """
 function SetTriggerMode(mode)
-    @ccall libandor.SetTriggerMode(mode::Cint)::Cuint
+    @ccall libandor2.SetTriggerMode(mode::Cint)::Cuint
 end
 
 """
@@ -4001,11 +3995,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetTriggerInvert(int mode);
+unsigned int WINAPI SetTriggerInvert(int mode);
 ```
 """
 function SetTriggerInvert(mode)
-    @ccall libandor.SetTriggerInvert(mode::Cint)::Cuint
+    @ccall libandor2.SetTriggerInvert(mode::Cint)::Cuint
 end
 
 """
@@ -4013,11 +4007,11 @@ end
 
 ### Prototype
 ```c
-unsigned int GetTriggerLevelRange(float * minimum, float * maximum);
+unsigned int WINAPI GetTriggerLevelRange(float * minimum, float * maximum);
 ```
 """
 function GetTriggerLevelRange(minimum, maximum)
-    @ccall libandor.GetTriggerLevelRange(minimum::Ptr{Cfloat}, maximum::Ptr{Cfloat})::Cuint
+    @ccall libandor2.GetTriggerLevelRange(minimum::Ptr{Cfloat}, maximum::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -4025,11 +4019,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetTriggerLevel(float f_level);
+unsigned int WINAPI SetTriggerLevel(float f_level);
 ```
 """
 function SetTriggerLevel(f_level)
-    @ccall libandor.SetTriggerLevel(f_level::Cfloat)::Cuint
+    @ccall libandor2.SetTriggerLevel(f_level::Cfloat)::Cuint
 end
 
 """
@@ -4037,11 +4031,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetIODirection(int index, int iDirection);
+unsigned int WINAPI SetIODirection(int index, int iDirection);
 ```
 """
 function SetIODirection(index, iDirection)
-    @ccall libandor.SetIODirection(index::Cint, iDirection::Cint)::Cuint
+    @ccall libandor2.SetIODirection(index::Cint, iDirection::Cint)::Cuint
 end
 
 """
@@ -4049,11 +4043,23 @@ end
 
 ### Prototype
 ```c
-unsigned int SetIOLevel(int index, int iLevel);
+unsigned int WINAPI SetIOLevel(int index, int iLevel);
 ```
 """
 function SetIOLevel(index, iLevel)
-    @ccall libandor.SetIOLevel(index::Cint, iLevel::Cint)::Cuint
+    @ccall libandor2.SetIOLevel(index::Cint, iLevel::Cint)::Cuint
+end
+
+"""
+    SetUserEvent(userEvent)
+
+### Prototype
+```c
+unsigned int WINAPI SetUserEvent(HANDLE userEvent);
+```
+"""
+function SetUserEvent(userEvent)
+    @ccall libandor2.SetUserEvent(userEvent::HANDLE)::Cuint
 end
 
 """
@@ -4061,11 +4067,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetUSGenomics(at_32 width, at_32 height);
+unsigned int WINAPI SetUSGenomics(long width, long height);
 ```
 """
 function SetUSGenomics(width, height)
-    @ccall libandor.SetUSGenomics(width::Cint, height::Cint)::Cuint
+    @ccall libandor2.SetUSGenomics(width::Clong, height::Clong)::Cuint
 end
 
 """
@@ -4073,11 +4079,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetVerticalRowBuffer(int rows);
+unsigned int WINAPI SetVerticalRowBuffer(int rows);
 ```
 """
 function SetVerticalRowBuffer(rows)
-    @ccall libandor.SetVerticalRowBuffer(rows::Cint)::Cuint
+    @ccall libandor2.SetVerticalRowBuffer(rows::Cint)::Cuint
 end
 
 """
@@ -4085,11 +4091,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetVerticalSpeed(int index);
+unsigned int WINAPI SetVerticalSpeed(int index);
 ```
 """
 function SetVerticalSpeed(index)
-    @ccall libandor.SetVerticalSpeed(index::Cint)::Cuint
+    @ccall libandor2.SetVerticalSpeed(index::Cint)::Cuint
 end
 
 """
@@ -4097,11 +4103,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetVirtualChip(int state);
+unsigned int WINAPI SetVirtualChip(int state);
 ```
 """
 function SetVirtualChip(state)
-    @ccall libandor.SetVirtualChip(state::Cint)::Cuint
+    @ccall libandor2.SetVirtualChip(state::Cint)::Cuint
 end
 
 """
@@ -4109,11 +4115,11 @@ end
 
 ### Prototype
 ```c
-unsigned int SetVSAmplitude(int index);
+unsigned int WINAPI SetVSAmplitude(int index);
 ```
 """
 function SetVSAmplitude(index)
-    @ccall libandor.SetVSAmplitude(index::Cint)::Cuint
+    @ccall libandor2.SetVSAmplitude(index::Cint)::Cuint
 end
 
 """
@@ -4121,76 +4127,71 @@ end
 
 ### Prototype
 ```c
-unsigned int SetVSSpeed(int index);
+unsigned int WINAPI SetVSSpeed(int index);
 ```
 """
 function SetVSSpeed(index)
-    @ccall libandor.SetVSSpeed(index::Cint)::Cuint
+    @ccall libandor2.SetVSSpeed(index::Cint)::Cuint
 end
 
-# no prototype is found for this function at atmcdLXd.h:501:14, please use with caution
 """
     ShutDown()
 
 ### Prototype
 ```c
-unsigned int ShutDown();
+unsigned int WINAPI ShutDown(void);
 ```
 """
 function ShutDown()
-    @ccall libandor.ShutDown()::Cuint
+    @ccall libandor2.ShutDown()::Cuint
 end
 
-# no prototype is found for this function at atmcdLXd.h:502:14, please use with caution
 """
     StartAcquisition()
 
 ### Prototype
 ```c
-unsigned int StartAcquisition();
+unsigned int WINAPI StartAcquisition(void);
 ```
 """
 function StartAcquisition()
-    @ccall libandor.StartAcquisition()::Cuint
+    @ccall libandor2.StartAcquisition()::Cuint
 end
 
-# no prototype is found for this function at atmcdLXd.h:503:14, please use with caution
 """
     UnMapPhysicalAddress()
 
 ### Prototype
 ```c
-unsigned int UnMapPhysicalAddress();
+unsigned int WINAPI UnMapPhysicalAddress(void);
 ```
 """
 function UnMapPhysicalAddress()
-    @ccall libandor.UnMapPhysicalAddress()::Cuint
+    @ccall libandor2.UnMapPhysicalAddress()::Cuint
 end
 
-# no prototype is found for this function at atmcdLXd.h:504:14, please use with caution
 """
     UpdateDDGTimings()
 
 ### Prototype
 ```c
-unsigned int UpdateDDGTimings();
+unsigned int WINAPI UpdateDDGTimings(void);
 ```
 """
 function UpdateDDGTimings()
-    @ccall libandor.UpdateDDGTimings()::Cuint
+    @ccall libandor2.UpdateDDGTimings()::Cuint
 end
 
-# no prototype is found for this function at atmcdLXd.h:505:14, please use with caution
 """
     WaitForAcquisition()
 
 ### Prototype
 ```c
-unsigned int WaitForAcquisition();
+unsigned int WINAPI WaitForAcquisition(void);
 ```
 """
 function WaitForAcquisition()
-    @ccall libandor.WaitForAcquisition()::Cuint
+    @ccall libandor2.WaitForAcquisition()::Cuint
 end
 
 """
@@ -4198,11 +4199,11 @@ end
 
 ### Prototype
 ```c
-unsigned int WaitForAcquisitionByHandle(at_32 cameraHandle);
+unsigned int WINAPI WaitForAcquisitionByHandle(long cameraHandle);
 ```
 """
 function WaitForAcquisitionByHandle(cameraHandle)
-    @ccall libandor.WaitForAcquisitionByHandle(cameraHandle::Cint)::Cuint
+    @ccall libandor2.WaitForAcquisitionByHandle(cameraHandle::Clong)::Cuint
 end
 
 """
@@ -4210,11 +4211,11 @@ end
 
 ### Prototype
 ```c
-unsigned int WaitForAcquisitionByHandleTimeOut(long cameraHandle, int iTimeOutMs);
+unsigned int WINAPI WaitForAcquisitionByHandleTimeOut(long cameraHandle, int iTimeOutMs);
 ```
 """
 function WaitForAcquisitionByHandleTimeOut(cameraHandle, iTimeOutMs)
-    @ccall libandor.WaitForAcquisitionByHandleTimeOut(cameraHandle::Clong, iTimeOutMs::Cint)::Cuint
+    @ccall libandor2.WaitForAcquisitionByHandleTimeOut(cameraHandle::Clong, iTimeOutMs::Cint)::Cuint
 end
 
 """
@@ -4222,11 +4223,11 @@ end
 
 ### Prototype
 ```c
-unsigned int WaitForAcquisitionTimeOut(int iTimeOutMs);
+unsigned int WINAPI WaitForAcquisitionTimeOut(int iTimeOutMs);
 ```
 """
 function WaitForAcquisitionTimeOut(iTimeOutMs)
-    @ccall libandor.WaitForAcquisitionTimeOut(iTimeOutMs::Cint)::Cuint
+    @ccall libandor2.WaitForAcquisitionTimeOut(iTimeOutMs::Cint)::Cuint
 end
 
 """
@@ -4234,11 +4235,11 @@ end
 
 ### Prototype
 ```c
-unsigned int WhiteBalance(unsigned short * wRed, unsigned short * wGreen, unsigned short * wBlue, float * fRelR, float * fRelB, WhiteBalanceInfo * info);
+unsigned int WINAPI WhiteBalance(WORD * wRed, WORD * wGreen, WORD * wBlue, float * fRelR, float * fRelB, WhiteBalanceInfo * info);
 ```
 """
 function WhiteBalance(wRed, wGreen, wBlue, fRelR, fRelB, info)
-    @ccall libandor.WhiteBalance(wRed::Ptr{Cushort}, wGreen::Ptr{Cushort}, wBlue::Ptr{Cushort}, fRelR::Ptr{Cfloat}, fRelB::Ptr{Cfloat}, info::Ptr{WhiteBalanceInfo})::Cuint
+    @ccall libandor2.WhiteBalance(wRed::Ptr{WORD}, wGreen::Ptr{WORD}, wBlue::Ptr{WORD}, fRelR::Ptr{Cfloat}, fRelB::Ptr{Cfloat}, info::Ptr{WhiteBalanceInfo})::Cuint
 end
 
 """
@@ -4246,23 +4247,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_Initialize(const char * const pcFilename, unsigned int uiFileNameLen);
+unsigned int WINAPI OA_Initialize(const char * const pcFilename, unsigned int uiFileNameLen);
 ```
 """
 function OA_Initialize(pcFilename, uiFileNameLen)
-    @ccall libandor.OA_Initialize(pcFilename::Cstring, uiFileNameLen::Cuint)::Cuint
-end
-
-"""
-    OA_IsPreSetModeAvailable(pcModeName)
-
-### Prototype
-```c
-unsigned int OA_IsPreSetModeAvailable(const char * const pcModeName);
-```
-"""
-function OA_IsPreSetModeAvailable(pcModeName)
-    @ccall libandor.OA_IsPreSetModeAvailable(pcModeName::Cstring)::Cuint
+    @ccall libandor2.OA_Initialize(pcFilename::Cstring, uiFileNameLen::Cuint)::Cuint
 end
 
 """
@@ -4270,11 +4259,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_EnableMode(const char * const pcModeName);
+unsigned int WINAPI OA_EnableMode(const char * const pcModeName);
 ```
 """
 function OA_EnableMode(pcModeName)
-    @ccall libandor.OA_EnableMode(pcModeName::Cstring)::Cuint
+    @ccall libandor2.OA_EnableMode(pcModeName::Cstring)::Cuint
 end
 
 """
@@ -4282,11 +4271,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_GetModeAcqParams(const char * const pcModeName, char * const pcListOfParams);
+unsigned int WINAPI OA_GetModeAcqParams(const char * const pcModeName, char * const pcListOfParams);
 ```
 """
 function OA_GetModeAcqParams(pcModeName, pcListOfParams)
-    @ccall libandor.OA_GetModeAcqParams(pcModeName::Cstring, pcListOfParams::Cstring)::Cuint
+    @ccall libandor2.OA_GetModeAcqParams(pcModeName::Cstring, pcListOfParams::Cstring)::Cuint
 end
 
 """
@@ -4294,11 +4283,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_GetUserModeNames(char * pcListOfModes);
+unsigned int WINAPI OA_GetUserModeNames(char * pcListOfModes);
 ```
 """
 function OA_GetUserModeNames(pcListOfModes)
-    @ccall libandor.OA_GetUserModeNames(pcListOfModes::Cstring)::Cuint
+    @ccall libandor2.OA_GetUserModeNames(pcListOfModes::Cstring)::Cuint
 end
 
 """
@@ -4306,11 +4295,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_GetPreSetModeNames(char * pcListOfModes);
+unsigned int WINAPI OA_GetPreSetModeNames(char * pcListOfModes);
 ```
 """
 function OA_GetPreSetModeNames(pcListOfModes)
-    @ccall libandor.OA_GetPreSetModeNames(pcListOfModes::Cstring)::Cuint
+    @ccall libandor2.OA_GetPreSetModeNames(pcListOfModes::Cstring)::Cuint
 end
 
 """
@@ -4318,11 +4307,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_GetNumberOfUserModes(unsigned int * const puiNumberOfModes);
+unsigned int WINAPI OA_GetNumberOfUserModes(unsigned int * const puiNumberOfModes);
 ```
 """
 function OA_GetNumberOfUserModes(puiNumberOfModes)
-    @ccall libandor.OA_GetNumberOfUserModes(puiNumberOfModes::Ptr{Cuint})::Cuint
+    @ccall libandor2.OA_GetNumberOfUserModes(puiNumberOfModes::Ptr{Cuint})::Cuint
 end
 
 """
@@ -4330,11 +4319,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_GetNumberOfPreSetModes(unsigned int * const puiNumberOfModes);
+unsigned int WINAPI OA_GetNumberOfPreSetModes(unsigned int * const puiNumberOfModes);
 ```
 """
 function OA_GetNumberOfPreSetModes(puiNumberOfModes)
-    @ccall libandor.OA_GetNumberOfPreSetModes(puiNumberOfModes::Ptr{Cuint})::Cuint
+    @ccall libandor2.OA_GetNumberOfPreSetModes(puiNumberOfModes::Ptr{Cuint})::Cuint
 end
 
 """
@@ -4342,11 +4331,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_GetNumberOfAcqParams(const char * const pcModeName, unsigned int * const puiNumberOfParams);
+unsigned int WINAPI OA_GetNumberOfAcqParams(const char * const pcModeName, unsigned int * const puiNumberOfParams);
 ```
 """
 function OA_GetNumberOfAcqParams(pcModeName, puiNumberOfParams)
-    @ccall libandor.OA_GetNumberOfAcqParams(pcModeName::Cstring, puiNumberOfParams::Ptr{Cuint})::Cuint
+    @ccall libandor2.OA_GetNumberOfAcqParams(pcModeName::Cstring, puiNumberOfParams::Ptr{Cuint})::Cuint
 end
 
 """
@@ -4354,11 +4343,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_AddMode(char * pcModeName, unsigned int uiModeNameLen, char * pcModeDescription, unsigned int uiModeDescriptionLen);
+unsigned int WINAPI OA_AddMode(char * pcModeName, unsigned int uiModeNameLen, char * pcModeDescription, unsigned int uiModeDescriptionLen);
 ```
 """
 function OA_AddMode(pcModeName, uiModeNameLen, pcModeDescription, uiModeDescriptionLen)
-    @ccall libandor.OA_AddMode(pcModeName::Cstring, uiModeNameLen::Cuint, pcModeDescription::Cstring, uiModeDescriptionLen::Cuint)::Cuint
+    @ccall libandor2.OA_AddMode(pcModeName::Cstring, uiModeNameLen::Cuint, pcModeDescription::Cstring, uiModeDescriptionLen::Cuint)::Cuint
 end
 
 """
@@ -4366,11 +4355,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_WriteToFile(const char * const pcFileName, unsigned int uiFileNameLen);
+unsigned int WINAPI OA_WriteToFile(const char * const pcFileName, unsigned int uiFileNameLen);
 ```
 """
 function OA_WriteToFile(pcFileName, uiFileNameLen)
-    @ccall libandor.OA_WriteToFile(pcFileName::Cstring, uiFileNameLen::Cuint)::Cuint
+    @ccall libandor2.OA_WriteToFile(pcFileName::Cstring, uiFileNameLen::Cuint)::Cuint
 end
 
 """
@@ -4378,11 +4367,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_DeleteMode(const char * const pcModeName, unsigned int uiModeNameLen);
+unsigned int WINAPI OA_DeleteMode(const char * const pcModeName, unsigned int uiModeNameLen);
 ```
 """
 function OA_DeleteMode(pcModeName, uiModeNameLen)
-    @ccall libandor.OA_DeleteMode(pcModeName::Cstring, uiModeNameLen::Cuint)::Cuint
+    @ccall libandor2.OA_DeleteMode(pcModeName::Cstring, uiModeNameLen::Cuint)::Cuint
 end
 
 """
@@ -4390,11 +4379,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_SetInt(const char * const pcModeName, const char * pcModeParam, const int iIntValue);
+unsigned int WINAPI OA_SetInt(const char * const pcModeName, const char * pcModeParam, const int iIntValue);
 ```
 """
 function OA_SetInt(pcModeName, pcModeParam, iIntValue)
-    @ccall libandor.OA_SetInt(pcModeName::Cstring, pcModeParam::Cstring, iIntValue::Cint)::Cuint
+    @ccall libandor2.OA_SetInt(pcModeName::Cstring, pcModeParam::Cstring, iIntValue::Cint)::Cuint
 end
 
 """
@@ -4402,11 +4391,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_SetFloat(const char * const pcModeName, const char * pcModeParam, const float fFloatValue);
+unsigned int WINAPI OA_SetFloat(const char * const pcModeName, const char * pcModeParam, const float fFloatValue);
 ```
 """
 function OA_SetFloat(pcModeName, pcModeParam, fFloatValue)
-    @ccall libandor.OA_SetFloat(pcModeName::Cstring, pcModeParam::Cstring, fFloatValue::Cfloat)::Cuint
+    @ccall libandor2.OA_SetFloat(pcModeName::Cstring, pcModeParam::Cstring, fFloatValue::Cfloat)::Cuint
 end
 
 """
@@ -4414,11 +4403,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_SetString(const char * const pcModeName, const char * pcModeParam, char * pcStringValue, const unsigned int uiStringLen);
+unsigned int WINAPI OA_SetString(const char * const pcModeName, const char * pcModeParam, char * pcStringValue, const unsigned int uiStringLen);
 ```
 """
 function OA_SetString(pcModeName, pcModeParam, pcStringValue, uiStringLen)
-    @ccall libandor.OA_SetString(pcModeName::Cstring, pcModeParam::Cstring, pcStringValue::Cstring, uiStringLen::Cuint)::Cuint
+    @ccall libandor2.OA_SetString(pcModeName::Cstring, pcModeParam::Cstring, pcStringValue::Cstring, uiStringLen::Cuint)::Cuint
 end
 
 """
@@ -4426,11 +4415,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_GetInt(const char * const pcModeName, const char * const pcModeParam, int * iIntValue);
+unsigned int WINAPI OA_GetInt(const char * const pcModeName, const char * const pcModeParam, int * iIntValue);
 ```
 """
 function OA_GetInt(pcModeName, pcModeParam, iIntValue)
-    @ccall libandor.OA_GetInt(pcModeName::Cstring, pcModeParam::Cstring, iIntValue::Ptr{Cint})::Cuint
+    @ccall libandor2.OA_GetInt(pcModeName::Cstring, pcModeParam::Cstring, iIntValue::Ptr{Cint})::Cuint
 end
 
 """
@@ -4438,11 +4427,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_GetFloat(const char * const pcModeName, const char * const pcModeParam, float * fFloatValue);
+unsigned int WINAPI OA_GetFloat(const char * const pcModeName, const char * const pcModeParam, float * fFloatValue);
 ```
 """
 function OA_GetFloat(pcModeName, pcModeParam, fFloatValue)
-    @ccall libandor.OA_GetFloat(pcModeName::Cstring, pcModeParam::Cstring, fFloatValue::Ptr{Cfloat})::Cuint
+    @ccall libandor2.OA_GetFloat(pcModeName::Cstring, pcModeParam::Cstring, fFloatValue::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -4450,11 +4439,11 @@ end
 
 ### Prototype
 ```c
-unsigned int OA_GetString(const char * const pcModeName, const char * const pcModeParam, char * pcStringValue, const unsigned int uiStringLen);
+unsigned int WINAPI OA_GetString(const char * const pcModeName, const char * const pcModeParam, char * pcStringValue, const unsigned int uiStringLen);
 ```
 """
 function OA_GetString(pcModeName, pcModeParam, pcStringValue, uiStringLen)
-    @ccall libandor.OA_GetString(pcModeName::Cstring, pcModeParam::Cstring, pcStringValue::Cstring, uiStringLen::Cuint)::Cuint
+    @ccall libandor2.OA_GetString(pcModeName::Cstring, pcModeParam::Cstring, pcStringValue::Cstring, uiStringLen::Cuint)::Cuint
 end
 
 """
@@ -4462,11 +4451,11 @@ end
 
 ### Prototype
 ```c
-unsigned int Filter_SetMode(unsigned int mode);
+unsigned int WINAPI Filter_SetMode(unsigned int mode);
 ```
 """
 function Filter_SetMode(mode)
-    @ccall libandor.Filter_SetMode(mode::Cuint)::Cuint
+    @ccall libandor2.Filter_SetMode(mode::Cuint)::Cuint
 end
 
 """
@@ -4474,11 +4463,11 @@ end
 
 ### Prototype
 ```c
-unsigned int Filter_GetMode(unsigned int * mode);
+unsigned int WINAPI Filter_GetMode(unsigned int * mode);
 ```
 """
 function Filter_GetMode(mode)
-    @ccall libandor.Filter_GetMode(mode::Ptr{Cuint})::Cuint
+    @ccall libandor2.Filter_GetMode(mode::Ptr{Cuint})::Cuint
 end
 
 """
@@ -4486,11 +4475,11 @@ end
 
 ### Prototype
 ```c
-unsigned int Filter_SetThreshold(float threshold);
+unsigned int WINAPI Filter_SetThreshold(float threshold);
 ```
 """
 function Filter_SetThreshold(threshold)
-    @ccall libandor.Filter_SetThreshold(threshold::Cfloat)::Cuint
+    @ccall libandor2.Filter_SetThreshold(threshold::Cfloat)::Cuint
 end
 
 """
@@ -4498,11 +4487,11 @@ end
 
 ### Prototype
 ```c
-unsigned int Filter_GetThreshold(float * threshold);
+unsigned int WINAPI Filter_GetThreshold(float * threshold);
 ```
 """
 function Filter_GetThreshold(threshold)
-    @ccall libandor.Filter_GetThreshold(threshold::Ptr{Cfloat})::Cuint
+    @ccall libandor2.Filter_GetThreshold(threshold::Ptr{Cfloat})::Cuint
 end
 
 """
@@ -4510,11 +4499,11 @@ end
 
 ### Prototype
 ```c
-unsigned int Filter_SetDataAveragingMode(int mode);
+unsigned int WINAPI Filter_SetDataAveragingMode(int mode);
 ```
 """
 function Filter_SetDataAveragingMode(mode)
-    @ccall libandor.Filter_SetDataAveragingMode(mode::Cint)::Cuint
+    @ccall libandor2.Filter_SetDataAveragingMode(mode::Cint)::Cuint
 end
 
 """
@@ -4522,11 +4511,11 @@ end
 
 ### Prototype
 ```c
-unsigned int Filter_GetDataAveragingMode(int * mode);
+unsigned int WINAPI Filter_GetDataAveragingMode(int * mode);
 ```
 """
 function Filter_GetDataAveragingMode(mode)
-    @ccall libandor.Filter_GetDataAveragingMode(mode::Ptr{Cint})::Cuint
+    @ccall libandor2.Filter_GetDataAveragingMode(mode::Ptr{Cint})::Cuint
 end
 
 """
@@ -4534,11 +4523,11 @@ end
 
 ### Prototype
 ```c
-unsigned int Filter_SetAveragingFrameCount(int frames);
+unsigned int WINAPI Filter_SetAveragingFrameCount(int frames);
 ```
 """
 function Filter_SetAveragingFrameCount(frames)
-    @ccall libandor.Filter_SetAveragingFrameCount(frames::Cint)::Cuint
+    @ccall libandor2.Filter_SetAveragingFrameCount(frames::Cint)::Cuint
 end
 
 """
@@ -4546,11 +4535,11 @@ end
 
 ### Prototype
 ```c
-unsigned int Filter_GetAveragingFrameCount(int * frames);
+unsigned int WINAPI Filter_GetAveragingFrameCount(int * frames);
 ```
 """
 function Filter_GetAveragingFrameCount(frames)
-    @ccall libandor.Filter_GetAveragingFrameCount(frames::Ptr{Cint})::Cuint
+    @ccall libandor2.Filter_GetAveragingFrameCount(frames::Ptr{Cint})::Cuint
 end
 
 """
@@ -4558,11 +4547,11 @@ end
 
 ### Prototype
 ```c
-unsigned int Filter_SetAveragingFactor(int averagingFactor);
+unsigned int WINAPI Filter_SetAveragingFactor(int averagingFactor);
 ```
 """
 function Filter_SetAveragingFactor(averagingFactor)
-    @ccall libandor.Filter_SetAveragingFactor(averagingFactor::Cint)::Cuint
+    @ccall libandor2.Filter_SetAveragingFactor(averagingFactor::Cint)::Cuint
 end
 
 """
@@ -4570,11 +4559,11 @@ end
 
 ### Prototype
 ```c
-unsigned int Filter_GetAveragingFactor(int * averagingFactor);
+unsigned int WINAPI Filter_GetAveragingFactor(int * averagingFactor);
 ```
 """
 function Filter_GetAveragingFactor(averagingFactor)
-    @ccall libandor.Filter_GetAveragingFactor(averagingFactor::Ptr{Cint})::Cuint
+    @ccall libandor2.Filter_GetAveragingFactor(averagingFactor::Ptr{Cint})::Cuint
 end
 
 """
@@ -4582,11 +4571,11 @@ end
 
 ### Prototype
 ```c
-unsigned int PostProcessNoiseFilter(at_32 * pInputImage, at_32 * pOutputImage, int iOutputBufferSize, int iBaseline, int iMode, float fThreshold, int iHeight, int iWidth);
+unsigned int WINAPI PostProcessNoiseFilter(at_32 * pInputImage, at_32 * pOutputImage, int iOutputBufferSize, int iBaseline, int iMode, float fThreshold, int iHeight, int iWidth);
 ```
 """
 function PostProcessNoiseFilter(pInputImage, pOutputImage, iOutputBufferSize, iBaseline, iMode, fThreshold, iHeight, iWidth)
-    @ccall libandor.PostProcessNoiseFilter(pInputImage::Ptr{Cint}, pOutputImage::Ptr{Cint}, iOutputBufferSize::Cint, iBaseline::Cint, iMode::Cint, fThreshold::Cfloat, iHeight::Cint, iWidth::Cint)::Cuint
+    @ccall libandor2.PostProcessNoiseFilter(pInputImage::Ptr{Clong}, pOutputImage::Ptr{Clong}, iOutputBufferSize::Cint, iBaseline::Cint, iMode::Cint, fThreshold::Cfloat, iHeight::Cint, iWidth::Cint)::Cuint
 end
 
 """
@@ -4594,11 +4583,11 @@ end
 
 ### Prototype
 ```c
-unsigned int PostProcessCountConvert(at_32 * pInputImage, at_32 * pOutputImage, int iOutputBufferSize, int iNumImages, int iBaseline, int iMode, int iEmGain, float fQE, float fSensitivity, int iHeight, int iWidth);
+unsigned int WINAPI PostProcessCountConvert(at_32 * pInputImage, at_32 * pOutputImage, int iOutputBufferSize, int iNumImages, int iBaseline, int iMode, int iEmGain, float fQE, float fSensitivity, int iHeight, int iWidth);
 ```
 """
 function PostProcessCountConvert(pInputImage, pOutputImage, iOutputBufferSize, iNumImages, iBaseline, iMode, iEmGain, fQE, fSensitivity, iHeight, iWidth)
-    @ccall libandor.PostProcessCountConvert(pInputImage::Ptr{Cint}, pOutputImage::Ptr{Cint}, iOutputBufferSize::Cint, iNumImages::Cint, iBaseline::Cint, iMode::Cint, iEmGain::Cint, fQE::Cfloat, fSensitivity::Cfloat, iHeight::Cint, iWidth::Cint)::Cuint
+    @ccall libandor2.PostProcessCountConvert(pInputImage::Ptr{Clong}, pOutputImage::Ptr{Clong}, iOutputBufferSize::Cint, iNumImages::Cint, iBaseline::Cint, iMode::Cint, iEmGain::Cint, fQE::Cfloat, fSensitivity::Cfloat, iHeight::Cint, iWidth::Cint)::Cuint
 end
 
 """
@@ -4606,11 +4595,11 @@ end
 
 ### Prototype
 ```c
-unsigned int PostProcessPhotonCounting(at_32 * pInputImage, at_32 * pOutputImage, int iOutputBufferSize, int iNumImages, int iNumframes, int iNumberOfThresholds, float * pfThreshold, int iHeight, int iWidth);
+unsigned int WINAPI PostProcessPhotonCounting(at_32 * pInputImage, at_32 * pOutputImage, int iOutputBufferSize, int iNumImages, int iNumframes, int iNumberOfThresholds, float * pfThreshold, int iHeight, int iWidth);
 ```
 """
 function PostProcessPhotonCounting(pInputImage, pOutputImage, iOutputBufferSize, iNumImages, iNumframes, iNumberOfThresholds, pfThreshold, iHeight, iWidth)
-    @ccall libandor.PostProcessPhotonCounting(pInputImage::Ptr{Cint}, pOutputImage::Ptr{Cint}, iOutputBufferSize::Cint, iNumImages::Cint, iNumframes::Cint, iNumberOfThresholds::Cint, pfThreshold::Ptr{Cfloat}, iHeight::Cint, iWidth::Cint)::Cuint
+    @ccall libandor2.PostProcessPhotonCounting(pInputImage::Ptr{Clong}, pOutputImage::Ptr{Clong}, iOutputBufferSize::Cint, iNumImages::Cint, iNumframes::Cint, iNumberOfThresholds::Cint, pfThreshold::Ptr{Cfloat}, iHeight::Cint, iWidth::Cint)::Cuint
 end
 
 """
@@ -4618,18 +4607,16 @@ end
 
 ### Prototype
 ```c
-unsigned int PostProcessDataAveraging(at_32 * pInputImage, at_32 * pOutputImage, int iOutputBufferSize, int iNumImages, int iAveragingFilterMode, int iHeight, int iWidth, int iFrameCount, int iAveragingFactor);
+unsigned int WINAPI PostProcessDataAveraging(at_32 * pInputImage, at_32 * pOutputImage, int iOutputBufferSize, int iNumImages, int iAveragingFilterMode, int iHeight, int iWidth, int iFrameCount, int iAveragingFactor);
 ```
 """
 function PostProcessDataAveraging(pInputImage, pOutputImage, iOutputBufferSize, iNumImages, iAveragingFilterMode, iHeight, iWidth, iFrameCount, iAveragingFactor)
-    @ccall libandor.PostProcessDataAveraging(pInputImage::Ptr{Cint}, pOutputImage::Ptr{Cint}, iOutputBufferSize::Cint, iNumImages::Cint, iAveragingFilterMode::Cint, iHeight::Cint, iWidth::Cint, iFrameCount::Cint, iAveragingFactor::Cint)::Cuint
+    @ccall libandor2.PostProcessDataAveraging(pInputImage::Ptr{Clong}, pOutputImage::Ptr{Clong}, iOutputBufferSize::Cint, iNumImages::Cint, iAveragingFilterMode::Cint, iHeight::Cint, iWidth::Cint, iFrameCount::Cint, iAveragingFactor::Cint)::Cuint
 end
 
-const at_u16 = Cushort
+const at_32 = Clong
 
-const at_32 = Cint
-
-const at_u32 = Cuint
+const at_u32 = Culong
 
 const at_64 = Clonglong
 
@@ -4731,7 +4718,7 @@ const DRV_ACCUM_TIME_NOT_MET = 20023
 
 const DRV_NO_NEW_DATA = 20024
 
-const KERN_MEM_ERROR = 20025
+const DRV_PCI_DMA_FAIL = 20025
 
 const DRV_SPOOLERROR = 20026
 
@@ -4861,8 +4848,6 @@ const DRV_INVALID_AMPLIFIER = 20100
 
 const DRV_INVALID_COUNTCONVERT_MODE = 20101
 
-const DRV_USB_INTERRUPT_ENDPOINT_TIMEOUT = 20102
-
 const DRV_ERROR_NOCAMERA = 20990
 
 const DRV_NOT_SUPPORTED = 20991
@@ -4945,8 +4930,6 @@ const DRV_OA_CAMERA_NOT_SUPPORTED = 20194
 
 const DRV_OA_FAILED_TO_GET_MODE = 20195
 
-const DRV_OA_CAMERA_NOT_AVAILABLE = 20196
-
 const DRV_PROCESSING_FAILED = 20211
 
 const AC_ACQMODE_SINGLE = 1
@@ -4963,7 +4946,9 @@ const AC_ACQMODE_FASTKINETICS = 32
 
 const AC_ACQMODE_OVERLAP = 64
 
-const AC_ACQMODE_TDI = 0x80
+const AC_ACQMODE_SUPERKINETICS = 128
+
+const AC_ACQMODE_TIMESCAN = 256
 
 const AC_READMODE_FULLIMAGE = 1
 
@@ -4994,10 +4979,6 @@ const AC_TRIGGERMODE_EXTERNALEXPOSURE = 32
 const AC_TRIGGERMODE_INVERTED = 0x40
 
 const AC_TRIGGERMODE_EXTERNAL_CHARGESHIFTING = 0x80
-
-const AC_TRIGGERMODE_EXTERNAL_RISING = 0x0100
-
-const AC_TRIGGERMODE_EXTERNAL_PURGE = 0x0200
 
 const AC_TRIGGERMODE_BULB = 32
 
@@ -5059,11 +5040,7 @@ const AC_CAMERATYPE_ALTAF = 27
 
 const AC_CAMERATYPE_IKONXL = 28
 
-const AC_CAMERATYPE_CMOS_GEN2 = 29
-
-const AC_CAMERATYPE_ISTAR_SCMOS = 30
-
-const AC_CAMERATYPE_IKONLR = 31
+const AC_CAMERATYPE_RES1 = 29
 
 const AC_PIXELMODE_8BIT = 1
 
@@ -5138,12 +5115,6 @@ const AC_SETFUNCTION_PRESCANS = 0x04000000
 const AC_SETFUNCTION_GATEWIDTHSTEP = 0x08000000
 
 const AC_SETFUNCTION_EXTENDED_CROP_MODE = 0x10000000
-
-const AC_SETFUNCTION_SUPERKINETICS = 0x20000000
-
-const AC_SETFUNCTION_TIMESCAN = 0x40000000
-
-const AC_SETFUNCTION_CROPMODETYPE = 0x80000000
 
 const AC_SETFUNCTION_GAIN = 8
 
@@ -5260,11 +5231,5 @@ const AC_EMGAIN_12BIT = 2
 const AC_EMGAIN_LINEAR12 = 4
 
 const AC_EMGAIN_REAL12 = 8
-
-const AC_FEATURES2_ESD_EVENTS = 1
-
-const AC_FEATURES2_DUAL_PORT_CONFIGURATION = 2
-
-const AC_FEATURES2_OVERTEMP_EVENTS = 4
 
 end # module
