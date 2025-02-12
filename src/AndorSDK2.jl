@@ -662,7 +662,7 @@ function number_vss_speeds()
     num_speeds[]
 end
 
-function cooler_on()
+function is_cooler_on()
     status = Ref{Cint}()
     retval = LibAndorSDK2.IsCoolerOn(status)
     check_error(retval)
