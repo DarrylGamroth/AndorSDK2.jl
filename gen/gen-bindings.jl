@@ -4,7 +4,7 @@ using AndorSDK2_jll
 
 cd(@__DIR__)
 
-include_dir = joinpath(Aeron_jll.artifact_dir, "include")
+include_dir = joinpath(AndorSDK2_jll.artifact_dir, "include")
 
 options = load_options(joinpath(@__DIR__, "generator.toml"))
 

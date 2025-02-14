@@ -132,7 +132,7 @@ const error_codes = Dict(
 
 function check_error(code)
     int_code = Int64(code)
-    if int_code == LibAndorSDK2.DRV_SUCCESS
+    if !haskey(error_codes, int_code)
         return
     end
     error_message = get(error_codes, int_code, "Unknown error code")

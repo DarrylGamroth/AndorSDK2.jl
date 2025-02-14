@@ -78,11 +78,11 @@ function acquired_data(buf::AbstractVector{T}) where {T<:Union{Int32,UInt16,Floa
     GC.@preserve buf begin
         retval = LibAndorSDK2.DRV_SUCCESS
         if T == Int32
-            retval = LibAndorSDK2.GetAcquiredData(Ref(buf), length(buf))
+            retval = LibAndorSDK2.GetAcquiredData(buf, length(buf))
         elseif T == UInt16
-            retval = LibAndorSDK2.GetAcquiredData16(Ref(buf), length(buf))
+            retval = LibAndorSDK2.GetAcquiredData16(buf, length(buf))
         elseif T == Float32
-            retval = LibAndorSDK2.GetAcquiredFloatData(Ref(buf), length(buf))
+            retval = LibAndorSDK2.GetAcquiredFloatData(buf, length(buf))
         else
             throw(ArgumentError("Unsupported buffer type"))
         end
@@ -92,8 +92,9 @@ function acquired_data(buf::AbstractVector{T}) where {T<:Union{Int32,UInt16,Floa
 end
 
 function acquired_data(::Type{T}, size) where {T<:Union{Int32,UInt16,Float32}}
-    buf = Array{T}(undef, size)
+    buf = Vector{T}(undef, size)
     acquired_data(buf)
+    return buf
 end
 
 function acquired_data(::Type{T}) where {T}
@@ -519,16 +520,6 @@ function image!(hbin, vbin, hstart, hend, vstart, vend)
 end
 
 function isolated_crop_mode!(active::Bool, height, width, vbin, hbin)
-    (detector_width, detector_height) = detector()
-
-    if height <= 0 || height > detector_height
-        throw(ArgumentError("Crop height exceeds detector height"))
-    end
-
-    if width <= 0 || width > detector_width
-        throw(ArgumentError("Crop width exceeds detector width"))
-    end
-
     retval = LibAndorSDK2.SetIsolatedCropMode(Integer(active), height, width, vbin, hbin)
     check_error(retval)
 end
@@ -584,15 +575,25 @@ end
     OPEN_ANY = 5
 end
 
-function shutter!(type::ShutterSignalType.T, mode::ShutterMode.T, closing_time, opening_time)
-    retval = LibAndorSDK2.SetShutter(Integer(type), Integer(mode), closing_time, opening_time)
+function shutter!(type, mode, closing_time, opening_time)
+    retval = LibAndorSDK2.SetShutter(type, mode, closing_time, opening_time)
     check_error(retval)
 end
 
-function shutter_ex!(type::ShutterSignalType.T, mode::ShutterMode.T, closing_time, opening_time, ext_mode::ShutterMode.T)
-    retval = LibAndorSDK2.SetShutterEx(Integer(type), Integer(mode), closing_time, opening_time, Integer(ext_mode))
+function shutter_ex!(type, mode, closing_time, opening_time, ext_mode)
+    retval = LibAndorSDK2.SetShutterEx(type, mode, closing_time, opening_time, ext_mode)
     check_error(retval)
 end
+
+# function shutter!(type::ShutterSignalType.T, mode::ShutterMode.T, closing_time, opening_time)
+#     retval = LibAndorSDK2.SetShutter(Integer(type), Integer(mode), closing_time, opening_time)
+#     check_error(retval)
+# end
+
+# function shutter_ex!(type::ShutterSignalType.T, mode::ShutterMode.T, closing_time, opening_time, ext_mode::ShutterMode.T)
+#     retval = LibAndorSDK2.SetShutterEx(Integer(type), Integer(mode), closing_time, opening_time, Integer(ext_mode))
+#     check_error(retval)
+# end
 
 function temperature_range()
     min = Ref{Cint}()
@@ -611,7 +612,7 @@ end
 end
 
 function temperature()
-    temp = Ref{Cfloat}()
+    temp = Ref{Cint}()
     retval = LibAndorSDK2.GetTemperature(temp)
     check_error(retval)
     (temp[], CoolingStatus.T(retval))
@@ -667,6 +668,11 @@ function is_cooler_on()
     retval = LibAndorSDK2.IsCoolerOn(status)
     check_error(retval)
     status[] == 1
+end
+
+function current_camera!(handle)
+    retval = LibAndorSDK2.SetCurrentCamera(handle)
+    check_error(retval)
 end
 
 mutable struct Camera
