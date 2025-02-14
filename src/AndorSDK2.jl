@@ -102,7 +102,35 @@ function acquired_data(::Type{T}) where {T}
     acquired_data(T, x * y)
 end
 
-acquired_data() = acquired_data(UInt16)
+acquired_data() = acquired_data(Int32)
+
+function most_recent_image(buf::AbstractVector{T}) where {T<:Union{Int32,UInt16}}
+    GC.@preserve buf begin
+        retval = LibAndorSDK2.DRV_SUCCESS
+        if T == Int32
+            retval = LibAndorSDK2.GetMostRecentImage(buf, length(buf))
+        elseif T == UInt16
+            retval = LibAndorSDK2.GetMostRecentImage16(buf, length(buf))
+        else
+            throw(ArgumentError("Unsupported buffer type"))
+        end
+        check_error(retval)
+        return retval == LibAndorSDK2.DRV_SUCCESS
+    end
+end
+
+function most_recent_image(::Type{T}, size) where {T<:Union{Int32,UInt16,Float32}}
+    buf = Vector{T}(undef, size)
+    most_recent_image(buf)
+    return buf
+end
+
+function most_recent_image(::Type{T}) where {T}
+    x, y = detector()
+    most_recent_image(T, x * y)
+end
+
+most_recent_image() = most_recent_image(Int32)
 
 function acquisition_progress()
     acc = Ref{Clong}()
