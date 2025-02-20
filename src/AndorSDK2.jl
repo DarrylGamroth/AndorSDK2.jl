@@ -292,6 +292,11 @@ function maximum_exposure()
     check_error(retval)
 end
 
+function vss_speed!(index)
+    retval = LibAndorSDK2.SetVSSpeed(index)
+    check_error(retval)
+end
+
 function shutdown()
     retval = LibAndorSDK2.ShutDown()
     check_error(retval)
