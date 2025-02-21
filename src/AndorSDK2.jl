@@ -1,6 +1,7 @@
 module AndorSDK2
 
 using EnumX
+using StringViews
 
 include("LibAndorSDK2.jl")
 using .LibAndorSDK2
@@ -452,6 +453,13 @@ end
 function frame_transfer_mode!(mode::Bool)
     retval = LibAndorSDK2.SetFrameTransferMode(Integer(mode))
     check_error(retval)
+end
+
+function head_model()
+    buf = zeros(UInt8, 260)
+    retval = LibAndorSDK2.GetHeadModel(buf)
+    check_error(retval)
+    StringView(buf)
 end
 
 function num_hss_speeds(channel, type)
