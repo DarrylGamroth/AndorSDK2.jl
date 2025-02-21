@@ -220,6 +220,11 @@ function detector()
     (Int64(width[]), Int64(height[]))
 end
 
+function dma_parameters!(max_images_per_dma, seconds_per_dma)
+    retval = LibAndorSDK2.SetDMAParameters(max_images_per_dma, seconds_per_dma)
+    check_error(retval)
+end
+
 function em_advanced()
     state = Ref{Cint}()
     retval = LibAndorSDK2.GetEMAdvanced(state)
@@ -289,6 +294,11 @@ end
 function maximum_exposure()
     MaxExp = Ref{Cfloat}()
     retval = LibAndorSDK2.GetMaximumExposure(MaxExp)
+    check_error(retval)
+end
+
+function vs_amplitude!(index)
+    retval = LibAndorSDK2.SetVSAmplitude(index)
     check_error(retval)
 end
 
