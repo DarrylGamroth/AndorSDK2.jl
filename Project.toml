@@ -1,7 +1,7 @@
 name = "AndorSDK2"
 uuid = "85e1e58a-8f06-47dc-8621-d49759448faa"
 authors = ["Darryl Gamroth <dgamroth@rubus.ca>"]
-version = "0.1.8"
+version = "0.1.9"
 
 [deps]
 AndorSDK2_jll = "bf3b237f-d17d-557f-97f1-1eb158fbe9f2"

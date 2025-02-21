@@ -457,8 +457,10 @@ end
 
 function head_model()
     buf = zeros(UInt8, 260)
-    retval = LibAndorSDK2.GetHeadModel(buf)
-    check_error(retval)
+    GC.@preserve buf begin
+        retval = LibAndorSDK2.GetHeadModel(pointer(buf))
+        check_error(retval)
+    end
     StringView(buf)
 end
 
