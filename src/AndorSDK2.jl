@@ -232,13 +232,6 @@ function camera_serial_number()
     serial_number[]
 end
 
-function current_camera()
-    handle = Ref{Clong}()
-    retval = LibAndorSDK2.GetCurrentCamera(handle)
-    check_error(retval)
-    handle[]
-end
-
 function detector()
     width = Ref{Cint}()
     height = Ref{Cint}()
