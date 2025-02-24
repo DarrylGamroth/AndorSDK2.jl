@@ -115,6 +115,7 @@ function most_recent_image(buf::AbstractVector{T}) where {T<:Union{Int32,UInt16}
             throw(ArgumentError("Unsupported buffer type"))
         end
         check_error(retval)
+        return retval == LibAndorSDK2.DRV_SUCCESS
     end
 end
 
@@ -144,7 +145,7 @@ function images(first, last, buf::AbstractVector{T}) where {T<:Union{Int32,UInt1
             throw(ArgumentError("Unsupported buffer type"))
         end
         check_error(retval)
-        return valid_first[], valid_last[]
+        return valid_first[], valid_last[], retval == LibAndorSDK2.DRV_SUCCESS
     end
 end
 
