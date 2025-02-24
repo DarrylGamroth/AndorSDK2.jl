@@ -88,7 +88,6 @@ function acquired_data(buf::AbstractVector{T}) where {T<:Union{Int32,UInt16,Floa
             throw(ArgumentError("Unsupported buffer type"))
         end
         check_error(retval)
-        return retval == LibAndorSDK2.DRV_SUCCESS
     end
 end
 
@@ -116,11 +115,10 @@ function most_recent_image(buf::AbstractVector{T}) where {T<:Union{Int32,UInt16}
             throw(ArgumentError("Unsupported buffer type"))
         end
         check_error(retval)
-        return retval == LibAndorSDK2.DRV_SUCCESS
     end
 end
 
-function most_recent_image(::Type{T}, size) where {T<:Union{Int32,UInt16,Float32}}
+function most_recent_image(::Type{T}, size) where {T<:Union{Int32,UInt16}}
     buf = Vector{T}(undef, size)
     most_recent_image(buf)
     return buf
@@ -132,6 +130,34 @@ function most_recent_image(::Type{T}) where {T}
 end
 
 most_recent_image() = most_recent_image(Int32)
+
+function images(first, last, buf::AbstractVector{T}) where {T<:Union{Int32,UInt16}}
+    valid_first = Ref{Clong}(first)
+    valid_last = Ref{Clong}(last)
+    GC.@preserve buf begin
+        retval = LibAndorSDK2.DRV_SUCCESS
+        if T == Int32
+            retval = LibAndorSDK2.GetImages(first, last, buf, length(buf), valid_first, valid_last)
+        elseif T == UInt16
+            retval = LibAndorSDK2.GetImages16(first, last, buf, length(buf), valid_first, valid_last)
+        else
+            throw(ArgumentError("Unsupported buffer type"))
+        end
+        check_error(retval)
+        return valid_first[], valid_last[]
+    end
+end
+
+function images(first, last, ::Type{T}, size) where {T<:Union{Int32,UInt16}}
+    buf = Vector{T}(undef, size)
+    images(first, last, buf)
+    return buf
+end
+
+function images(first, last, ::Type{T}) where {T}
+    x, y = detector()
+    images(first, last, T, x * y * (last - first + 1))
+end
 
 function acquisition_progress()
     acc = Ref{Clong}()
@@ -271,8 +297,8 @@ function number_amp()
 end
 
 function number_new_images()
-    first = Ref{Cint}()
-    last = Ref{Cint}()
+    first = Ref{Clong}()
+    last = Ref{Clong}()
     retval = LibAndorSDK2.GetNumberNewImages(first, last)
     check_error(retval)
     (first[], last[])
@@ -461,7 +487,7 @@ function head_model()
         retval = LibAndorSDK2.GetHeadModel(pointer(buf))
         check_error(retval)
     end
-    StringView(buf)
+    StringView(@view buf[1:findfirst(==(0x00), buf)-1])
 end
 
 function num_hss_speeds(channel, type)
@@ -726,6 +752,13 @@ end
 function current_camera!(handle)
     retval = LibAndorSDK2.SetCurrentCamera(handle)
     check_error(retval)
+end
+
+function current_camera()
+    handle = Ref{Clong}()
+    retval = LibAndorSDK2.GetCurrentCamera(handle)
+    check_error(retval)
+    handle[]
 end
 
 mutable struct Camera
